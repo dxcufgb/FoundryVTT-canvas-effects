@@ -150,6 +150,13 @@
       </label>
       {{/if}}
 
+      {{#if canAboveTokens}}
+      <label class="dxcfx-check" data-tooltip="{{localize 'DXCFX.App.AboveTokensHint'}}">
+        <input type="checkbox" name="aboveTokens" {{checked aboveTokens}}>
+        {{localize "DXCFX.App.AboveTokens"}}
+      </label>
+      {{/if}}
+
       <h3>{{localize "DXCFX.App.Effects"}}</h3>
       <div class="dxcfx-sliders">
         {{#each common}}

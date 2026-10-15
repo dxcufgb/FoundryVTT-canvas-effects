@@ -11,7 +11,7 @@ Paint areas and walls on the map and fill them with animated effects, all made f
 | Filters | Colour Wash, Colour Grade, Bloom, Underwater, Old Film, Glitch |
 | Surfaces | Lava Flow, Living Water, Heat Haze, Vortex, Your image |
 
-Every effect has several styles (135 in all). The painted areas are always see-through. They never block sight, light or movement; they only hold the effect. Effects are drawn above the map, tiles and drawings and below the tokens.
+Every effect has several styles (135 in all). The painted areas are always see-through. They never block sight, light or movement; they only hold the effect. Effects are drawn above the map, tiles and drawings and below the tokens. Tick **Above the tokens** on a layer to draw that layer over the tokens instead, so rain, snow or clouds fall on everyone's heads.
 
 **Foundry VTT:** v13 · system agnostic
 
@@ -55,6 +55,7 @@ The **Canvas effect** window builds an area's effect in layers, drawn bottom to 
 Every change shows in the preview and on the map right away. Nothing is saved until **Apply**; closing the window or **Undo changes** puts the area back as it was.
 
 - **Casts light**: fire, candles, firelight and lightning add real Foundry light sources, so they light the map and the tokens in a dark scene (walls block them, lightning excepted).
+- **Above the tokens**: any layer except the filters and surfaces can be drawn over the tokens instead of under them, for rain, snow, clouds or lightning falling on everyone's heads. The other layers of the same effect stay under the tokens, so a fog layer can stay on the ground below the rain.
 - **Thunder**: give a lightning layer a sound file and it plays a moment after each strike. Strikes follow the clock, so every player sees and hears the same one.
 - **Examples** in the saved effects list: Fireplace, Firelight, Campfire, Candles, Ritual circle, Heavy rain, Thunderstorm. Paint the firebox for a fire, one brush dot per candle (a stroke is a row of candles), the whole map for rain.
 

@@ -6,14 +6,16 @@
  *    it away, soft edges are a blur), used as a sprite mask, so effects only show where painted;
  *  - the effect layers inside the mask, bottom to top;
  *  - an "under" container with the effects that redraw the map itself (filters, lava, water):
- *    drawn just above the map and below tiles. It follows this container onto its parent.
+ *    drawn just above the map and below tiles. It follows this container onto its parent;
+ *  - an "over" container with the layers marked "Above the tokens" (rain, snow, clouds over
+ *    everyone's heads): drawn above the tokens. It follows this container the same way.
  * It never blocks sight or movement: it is only something drawn.
  *
  * The same class draws the area on the canvas and in the effect window's preview; the mask is
  * rendered with the renderer that will show it (render textures belong to one renderer).
  */
 
-import { SORT_LAYER } from "./constants.js";
+import { SORT_LAYER, OVER_SORT_LAYER } from "./constants.js";
 
 /** The "under" effects: above the scene background (sort layer 0), below tiles (500). */
 const UNDER_SORT_LAYER = 450;
@@ -64,11 +66,21 @@ export class AreaMesh extends PIXI.Container {
     this.underMask = this.under.addChild(new PIXI.Sprite(PIXI.Texture.EMPTY));
     this.underContent = this.under.addChild(new PIXI.Container());
     this.underContent.mask = this.underMask;
-    // Keep the under container next to this one, just before it.
+    this.over = new PIXI.Container();
+    this.over.sortLayer = OVER_SORT_LAYER;
+    this.over.eventMode = "none";
+    this.overMask = this.over.addChild(new PIXI.Sprite(PIXI.Texture.EMPTY));
+    this.overContent = this.over.addChild(new PIXI.Container());
+    this.overContent.mask = this.overMask;
+    // Keep the under container next to this one, just before it, and the over container just after it.
     this.on("added", parent => {
       if (this.under.parent !== parent) parent.addChildAt(this.under, Math.max(0, parent.getChildIndex(this)));
+      if (this.over.parent !== parent) parent.addChildAt(this.over, parent.getChildIndex(this) + 1);
     });
-    this.on("removed", () => this.under.parent?.removeChild(this.under));
+    this.on("removed", () => {
+      this.under.parent?.removeChild(this.under);
+      this.over.parent?.removeChild(this.over);
+    });
     this.playSound = playSound;
     this.renderer = renderer;
     this.grid = grid;
@@ -99,8 +111,8 @@ export class AreaMesh extends PIXI.Container {
     this.exclusions = exclusions;
     this.area = area;
     this.textures = textures;
-    this.elevation = this.under.elevation = area.elevation ?? 0;
-    this.sort = this.under.sort = area.sort ?? 0;
+    this.elevation = this.under.elevation = this.over.elevation = area.elevation ?? 0;
+    this.sort = this.under.sort = this.over.sort = area.sort ?? 0;
     const maskKey = JSON.stringify([area.shapes, area.feather, exclusions.map(e => [e.id, e.shapes, e.feather])]);
     const effect = normalizeEffect(area.effect);
     const effectKey = structuralKey(effect);
@@ -133,6 +145,7 @@ export class AreaMesh extends PIXI.Container {
       if (this.maskSprite) this.maskSprite.visible = false;
       this.content.visible = false;
       this.underContent.visible = false;
+      this.overContent.visible = false;
       return;
     }
     const feather = clamp(area.feather ?? 0, 0, 4) * this.grid;
@@ -171,9 +184,13 @@ export class AreaMesh extends PIXI.Container {
     this.underMask.texture = this.maskTexture;
     this.underMask.position.set(pb.x, pb.y);
     this.underMask.scale.set(1 / res);
+    this.overMask.texture = this.maskTexture;
+    this.overMask.position.set(pb.x, pb.y);
+    this.overMask.scale.set(1 / res);
     this.maskRes = res;
     this.content.visible = true;
     this.underContent.visible = true;
+    this.overContent.visible = true;
 
     // How much of the box is painted (for particle counts), from a few samples.
     let hit = 0;
@@ -243,7 +260,7 @@ export class AreaMesh extends PIXI.Container {
     for (const layer of effect.layers) {
       try {
         const e = createEffect(layer, ctx);
-        (e.def.under ? this.underContent : this.content).addChild(e);
+        (e.def.under ? this.underContent : layer.aboveTokens ? this.overContent : this.content).addChild(e);
         this.effects.push(e);
       } catch (err) {
         console.error("dxcufgbs-canvas-effects | could not build an effect layer", layer, err);
@@ -272,14 +289,16 @@ export class AreaMesh extends PIXI.Container {
 
   /** Show or hide the effects (the mask stays, for the painting overlay). */
   set showEffects(v) {
-    this.content.renderable = this.underContent.renderable = !!v;
+    this.content.renderable = this.underContent.renderable = this.overContent.renderable = !!v;
   }
 
   update(dt) {
-    // The under container follows this one (moved while dragged, faded for hidden areas).
-    this.under.position.copyFrom(this.position);
-    this.under.alpha = this.alpha;
-    this.under.visible = this.visible;
+    // The under and over containers follow this one (moved while dragged, faded for hidden areas).
+    for (const c of [this.under, this.over]) {
+      c.position.copyFrom(this.position);
+      c.alpha = this.alpha;
+      c.visible = this.visible;
+    }
     if (!this.content.renderable || !this.content.visible) return;
     for (const e of this.effects) e.update(dt);
   }
@@ -290,6 +309,7 @@ export class AreaMesh extends PIXI.Container {
     const tex = this.maskTexture;
     this.maskTexture = null;
     this.under.destroy({ children: true });
+    this.over.destroy({ children: true });
     this.glowProxy.parent?.removeChild(this.glowProxy);
     this.glowProxy.destroy();
     super.destroy({ children: true });

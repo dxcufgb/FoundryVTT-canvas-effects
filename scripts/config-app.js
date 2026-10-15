@@ -210,6 +210,8 @@ export class CanvasEffectConfig extends HandlebarsApplicationMixin(ApplicationV2
 
       hasLight: !!def.lights,
       light: !!layer.light,
+      canAboveTokens: !def.under && !def.backdrop,
+      aboveTokens: !!layer.aboveTokens,
       hasSound: !!def.sound,
       sound: layer.sound ?? "",
 
@@ -253,6 +255,10 @@ export class CanvasEffectConfig extends HandlebarsApplicationMixin(ApplicationV2
     });
     html.querySelector("input[name=light]")?.addEventListener("change", ev => {
       layer().light = ev.currentTarget.checked;
+      this.#changed();
+    });
+    html.querySelector("input[name=aboveTokens]")?.addEventListener("change", ev => {
+      layer().aboveTokens = ev.currentTarget.checked;
       this.#changed();
     });
     html.querySelector("input[name=sound]")?.addEventListener("change", ev => {

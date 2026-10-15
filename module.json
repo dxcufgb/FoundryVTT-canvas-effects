@@ -1,7 +1,7 @@
 {
   "id": "dxcufgbs-canvas-effects",
   "title": "Dxcufgb's canvas effects",
-  "description": "Paint see-through effect areas and walls on the map (brush, wall line, rectangle, ellipse, polygon, eraser) and fill them with animated effects drawn above the map and below the tokens. Build effects in layers in a live-preview window, save them by name, and export or import them as files.",
+  "description": "Paint see-through effect areas and walls on the map (brush, wall line, rectangle, ellipse, polygon, eraser) and fill them with animated effects drawn above the map and below the tokens, or above the tokens for weather. Build effects in layers in a live-preview window, save them by name, and export or import them as files.",
   "version": "0.1.0",
   "authors": [
     {
