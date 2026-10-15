@@ -9,3 +9,8 @@ export const LAYER = "dxcfxAreas";
  * (SORT_LAYERS.DRAWINGS = 600), below the tokens (SORT_LAYERS.TOKENS = 700).
  */
 export const SORT_LAYER = 650;
+/**
+ * Where layers marked "Above the tokens" are drawn (weather over everyone's heads): above the
+ * tokens (700), below Foundry's own weather (SORT_LAYERS.WEATHER = 1000).
+ */
+export const OVER_SORT_LAYER = 900;

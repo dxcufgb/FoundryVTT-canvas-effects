@@ -173,6 +173,8 @@
       "SoundHint": "Played a moment after each strike, on every player's computer, at the ambient volume.",
       "Light": "Casts light",
       "LightHint": "Lights up the map and the tokens in a dark scene, like a light source (blocked by walls).",
+      "AboveTokens": "Above the tokens",
+      "AboveTokensHint": "Draw this layer over the tokens instead of under them, e.g. rain, snow or clouds falling on everyone's heads.",
       "NeedsMap": "This effect works on the scene's background image, and this scene has none.",
       "Exclude": "Exclusion zone",
       "ExcludeHint": "Hide the effects of every area below this one in the list where this is painted (for example inside buildings). Areas above it are not affected.",

@@ -3,7 +3,8 @@
  *
  * Paint areas ("effect walls") on the map and fill them with animated effects. The areas are
  * always see-through: they never block sight, light or movement, they only hold the effect.
- * Effects are drawn above the map, tiles and drawings and below the tokens.
+ * Effects are drawn above the map, tiles and drawings and below the tokens (layers marked
+ * "Above the tokens" are drawn over them).
  *
  * The areas are stored on the Scene (see store.js), painted with the "Canvas effects" tools in the
  * Scene Controls (layer.js), and given an effect in the Canvas Effect window (config-app.js),

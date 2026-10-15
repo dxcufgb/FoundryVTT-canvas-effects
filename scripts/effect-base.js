@@ -201,7 +201,7 @@ export function effectTextures() {
 export class AreaEffect extends PIXI.Container {
 
   /** Layer options that need the effect to be built again when they change (the rest update live). */
-  static STRUCTURAL = ["effect", "style", "scale", "density", "src", "fit", "blend", "light"];
+  static STRUCTURAL = ["effect", "style", "scale", "density", "src", "fit", "blend", "light", "aboveTokens"];
 
   /**
    * @param {object} layer   a normalized layer

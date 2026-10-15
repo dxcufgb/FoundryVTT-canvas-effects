@@ -3,7 +3,8 @@
  *
  * An area's effect is a stack of layers, drawn bottom to top:
  *   {layers: [{effect, style, alpha, speed, scale, density, direction, wind, color, blend, pulse, rainbow,
- *              src, fit (your image), light (casts Foundry light), sound (lightning: thunder)}, ...]}
+ *              src, fit (your image), light (casts Foundry light), sound (lightning: thunder),
+ *              aboveTokens (drawn over the tokens; not for effects that redraw the map)}, ...]}
  *
  * ADDING AN EFFECT
  * ----------------
@@ -481,6 +482,8 @@ export function normalizeLayer(l = {}) {
     out.fit = FITS[l.fit] ? l.fit : "tile";
   }
   if (def.lights) out.light = l.light !== false;
+  // Effects that redraw the map stay on the map; any other layer can be drawn above the tokens.
+  if (!def.under) out.aboveTokens = l.aboveTokens === true;
   if (def.sound) out.sound = typeof l.sound === "string" ? l.sound.trim() : "";
   return out;
 }
