@@ -483,7 +483,7 @@ export function normalizeLayer(l = {}) {
   }
   if (def.lights) out.light = l.light !== false;
   // Effects that redraw the map stay on the map; any other layer can be drawn above the tokens.
-  if (!def.under) out.aboveTokens = l.aboveTokens === true;
+  if (!def.under && !def.backdrop) out.aboveTokens = l.aboveTokens === true;
   if (def.sound) out.sound = typeof l.sound === "string" ? l.sound.trim() : "";
   return out;
 }

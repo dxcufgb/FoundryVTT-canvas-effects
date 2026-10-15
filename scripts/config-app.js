@@ -210,7 +210,7 @@ export class CanvasEffectConfig extends HandlebarsApplicationMixin(ApplicationV2
 
       hasLight: !!def.lights,
       light: !!layer.light,
-      canAboveTokens: !def.under,
+      canAboveTokens: !def.under && !def.backdrop,
       aboveTokens: !!layer.aboveTokens,
       hasSound: !!def.sound,
       sound: layer.sound ?? "",
