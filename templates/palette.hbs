@@ -1,0 +1,47 @@
+<div class="dxcfx-pal">
+  <p class="dxcfx-hint">{{hint}}</p>
+
+  <div class="dxcfx-brush">
+    <label>{{localize "DXCFX.Palette.Width"}}</label>
+    <input type="range" name="width" min="0.25" max="10" step="0.25" value="{{width}}">
+    <output data-for="width">{{widthText}}</output>
+  </div>
+  <label class="dxcfx-check">
+    <input type="checkbox" name="snap" {{checked snap}}>
+    {{localize "DXCFX.Palette.Snap"}}
+  </label>
+
+  <h3>{{localize "DXCFX.Palette.Areas"}}</h3>
+  {{#if areas.length}}
+  <ol class="dxcfx-areas">
+    {{#each areas}}
+    <li class="{{#if active}}active{{/if}} {{#unless visible}}hidden-area{{/unless}} {{#if exclude}}exclusion{{/if}}" data-id="{{id}}">
+      <a class="dxcfx-area-name" data-action="pickArea" data-tooltip="{{localize 'DXCFX.Palette.PickHint'}}">
+        <i class="{{icon}}"></i>
+        <span><strong>{{name}}</strong><small>{{effect}}</small></span>
+      </a>
+      <span class="dxcfx-order">
+        <button type="button" data-action="moveArea" data-dir="1" data-tooltip="{{localize 'DXCFX.Palette.MoveUp'}}"><i class="fa-solid fa-caret-up"></i></button>
+        <button type="button" data-action="moveArea" data-dir="-1" data-tooltip="{{localize 'DXCFX.Palette.MoveDown'}}"><i class="fa-solid fa-caret-down"></i></button>
+      </span>
+      <button type="button" data-action="focusArea" data-tooltip="{{localize 'DXCFX.Palette.Focus'}}"><i class="fa-solid fa-location-crosshairs"></i></button>
+      <button type="button" data-action="configArea" data-tooltip="{{localize 'DXCFX.Palette.Configure'}}"><i class="fa-solid fa-sliders"></i></button>
+      <button type="button" data-action="toggleArea" data-tooltip="{{#if visible}}{{localize 'DXCFX.Hud.Hide'}}{{else}}{{localize 'DXCFX.Hud.Show'}}{{/if}}"><i class="fa-solid {{#if visible}}fa-eye{{else}}fa-eye-slash{{/if}}"></i></button>
+      <button type="button" data-action="deleteArea" data-tooltip="{{localize 'DXCFX.Palette.Delete'}}"><i class="fa-solid fa-trash"></i></button>
+    </li>
+    {{/each}}
+  </ol>
+  {{else}}
+  <p class="dxcfx-hint">{{localize "DXCFX.Palette.NoAreas"}}</p>
+  {{/if}}
+
+  <p class="dxcfx-hint dxcfx-order-hint">{{localize "DXCFX.Palette.OrderHint"}}</p>
+  <div class="dxcfx-pal-buttons">
+    <button type="button" data-action="newArea" data-tooltip="{{localize 'DXCFX.Palette.NewHint'}}"><i class="fa-solid fa-plus"></i> {{localize "DXCFX.Palette.New"}}</button>
+    <button type="button" data-action="newExclusion" class="{{#if nextExclude}}armed{{/if}}" data-tooltip="{{localize 'DXCFX.Palette.NewExclusionHint'}}"><i class="fa-solid fa-ban"></i> {{localize "DXCFX.Palette.NewExclusion"}}</button>
+  </div>
+  <div class="dxcfx-pal-buttons">
+    <button type="button" data-action="configure" class="bright" {{#unless currentArea}}disabled{{/unless}}><i class="fa-solid fa-wand-magic-sparkles"></i> {{localize "DXCFX.Palette.Effect"}}</button>
+  </div>
+  <p class="dxcfx-hint dxcfx-current">{{#if currentArea}}{{localize "DXCFX.Palette.PaintingInto" name=currentArea.name}}{{else}}{{#if nextExclude}}{{localize "DXCFX.Palette.PaintingExclusion"}}{{else}}{{localize "DXCFX.Palette.PaintingNew"}}{{/if}}{{/if}}</p>
+</div>

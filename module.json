@@ -1,0 +1,35 @@
+{
+  "id": "dxcufgbs-canvas-effects",
+  "title": "Dxcufgb's canvas effects",
+  "description": "Paint see-through effect areas and walls on the map (brush, wall line, rectangle, ellipse, polygon, eraser) and fill them with animated effects drawn above the map and below the tokens. Build effects in layers in a live-preview window, save them by name, and export or import them as files.",
+  "version": "0.1.0",
+  "authors": [
+    {
+      "name": "Dxcufgb",
+      "url": "https://github.com/Dxcufgb"
+    }
+  ],
+  "compatibility": {
+    "minimum": "13",
+    "verified": "13"
+  },
+  "url": "https://github.com/dxcufgb/FoundryVTT-canvas-effects",
+  "manifest": "https://github.com/dxcufgb/FoundryVTT-canvas-effects/releases/latest/download/module.json",
+  "download": "https://github.com/dxcufgb/FoundryVTT-canvas-effects/releases/latest/download/module.zip",
+  "bugs": "https://github.com/dxcufgb/FoundryVTT-canvas-effects/issues",
+  "readme": "https://github.com/dxcufgb/FoundryVTT-canvas-effects#readme",
+  "license": "LICENSE",
+  "esmodules": [
+    "scripts/main.js"
+  ],
+  "styles": [
+    "styles/canvas-effects.css"
+  ],
+  "languages": [
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "lang/en.json"
+    }
+  ]
+}

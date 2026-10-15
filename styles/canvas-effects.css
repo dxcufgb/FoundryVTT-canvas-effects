@@ -1,0 +1,136 @@
+/* Dxcufgb's canvas effects */
+
+/* ---- Canvas Effect window (same layout as the lively tokens window) ---- */
+.dxcfx-config .window-content { padding: 0.75rem; }
+.dxcfx-config .dxcfx-root { display: flex; flex-direction: column; }
+.dxcfx-config .dxcfx-body { display: grid; grid-template-columns: 320px 1fr; gap: 1rem; }
+.dxcfx-config .dxcfx-left { display: flex; flex-direction: column; align-items: stretch; gap: 0.35rem; }
+.dxcfx-config .dxcfx-preview {
+  width: 320px; height: 240px; border-radius: 8px; overflow: hidden;
+  background: radial-gradient(circle at 50% 50%, #3a4032 0%, #22261e 70%, #181a15 100%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+.dxcfx-config .dxcfx-preview canvas { display: block; width: 320px; height: 240px; }
+.dxcfx-config .hint { margin: 0; font-size: var(--font-size-12, 12px); opacity: 0.75; text-align: center; }
+.dxcfx-config h3 { margin: 0.4rem 0 0.3rem; font-size: var(--font-size-14, 14px); border-bottom: 1px solid var(--color-border, rgba(255,255,255,0.15)); }
+.dxcfx-config h3 small { font-weight: normal; opacity: 0.6; margin-left: 0.3rem; }
+.dxcfx-config .dxcfx-left h3 { margin-top: 0.6rem; }
+.dxcfx-config .dxcfx-right { max-height: min(74vh, 700px); overflow-y: auto; padding-right: 0.35rem; }
+
+.dxcfx-config .dxcfx-effects { display: grid; grid-template-columns: repeat(6, 1fr); gap: 0.3rem; }
+.dxcfx-config .dxcfx-effects button {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.2rem;
+  height: 3.4rem; padding: 0.2rem; font-size: var(--font-size-11, 11px); line-height: 1.1; white-space: normal;
+}
+.dxcfx-config .dxcfx-effects button i { font-size: 1.3rem; margin: 0; }
+.dxcfx-config .dxcfx-effects button.custom { border-style: dashed; }
+.dxcfx-config .dxcfx-styles { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+.dxcfx-config .dxcfx-styles button { flex: 0 0 auto; width: auto; padding: 0 0.7rem; }
+.dxcfx-config .dxcfx-effects button.active,
+.dxcfx-config .dxcfx-styles button.active,
+.dxcfx-config .dxcfx-layers button.active {
+  border-color: var(--color-warm-2, #ff6400); box-shadow: 0 0 6px var(--color-warm-2, #ff6400);
+  background: rgba(255, 140, 40, 0.18);
+}
+.dxcfx-config .dxcfx-sliders { display: grid; grid-template-columns: 6.5rem 1fr 3.4rem; gap: 0.35rem 0.5rem; align-items: center; }
+.dxcfx-config .dxcfx-sliders output { text-align: right; font-variant-numeric: tabular-nums; }
+.dxcfx-config .dxcfx-sliders select, .dxcfx-config .dxcfx-sliders input[type=text] { width: 100%; }
+.dxcfx-config .dxcfx-color { display: flex; align-items: center; gap: 0.4rem; }
+.dxcfx-config .dxcfx-color input[type=color] { width: 3rem; height: 1.6rem; padding: 0; border: none; background: none; }
+.dxcfx-config .dxcfx-check { display: flex; align-items: center; gap: 0.4rem; margin-top: 0.2rem; }
+
+.dxcfx-config .dxcfx-presets { display: flex; gap: 0.3rem; width: 100%; }
+.dxcfx-config .dxcfx-presets select { flex: 1; min-width: 0; }
+.dxcfx-config .dxcfx-presets button { flex: 0 0 2rem; width: 2rem; padding: 0; }
+.dxcfx-config .dxcfx-presets button i { margin: 0; }
+.dxcfx-config .dxcfx-transfer { display: flex; gap: 0.3rem; width: 100%; }
+.dxcfx-config .dxcfx-transfer button { flex: 1; min-width: 0; white-space: nowrap; }
+
+.dxcfx-config .dxcfx-layers { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+.dxcfx-config .dxcfx-layers button {
+  flex: 0 1 auto; width: auto; max-width: 12rem; display: flex; align-items: center; gap: 0.3rem; padding: 0 0.5rem;
+}
+.dxcfx-config .dxcfx-layers button span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dxcfx-config .dxcfx-layers button img { width: 20px; height: 20px; border: none; object-fit: contain; flex: none; }
+.dxcfx-config .dxcfx-layers .dxcfx-add { opacity: 0.85; border-style: dashed; }
+.dxcfx-config .dxcfx-layer-tools { display: flex; align-items: center; gap: 0.3rem; margin-top: 0.3rem; }
+.dxcfx-config .dxcfx-layer-tools span { flex: 1; font-size: var(--font-size-12, 12px); opacity: 0.75; }
+.dxcfx-config .dxcfx-layer-tools button { flex: 0 0 2rem; width: 2rem; height: 1.7rem; padding: 0; }
+.dxcfx-config .dxcfx-layer-tools button i { margin: 0; }
+
+.dxcfx-config .dxcfx-image { display: flex; gap: 0.6rem; align-items: flex-start; margin-bottom: 0.4rem; }
+.dxcfx-config .dxcfx-thumb {
+  flex: 0 0 64px; height: 64px; display: flex; align-items: center; justify-content: center; border-radius: 6px;
+  background: repeating-conic-gradient(rgba(255,255,255,0.08) 0% 25%, transparent 0% 50%) 50% / 12px 12px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+.dxcfx-config .dxcfx-thumb img { max-width: 60px; max-height: 60px; border: none; object-fit: contain; }
+.dxcfx-config .dxcfx-thumb i { font-size: 1.6rem; opacity: 0.5; }
+.dxcfx-config .dxcfx-image-src { flex: 1; display: flex; flex-direction: column; gap: 0.3rem; }
+.dxcfx-config .dxcfx-image-buttons { display: flex; gap: 0.3rem; }
+
+.dxcfx-config .dxcfx-footer { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.8rem; }
+.dxcfx-config .dxcfx-footer button { flex: 1; }
+.dxcfx-config .dxcfx-footer button.bright { flex: 1.5; }
+.dxcfx-config .dxcfx-dirty { flex: 0 0 auto; font-size: var(--font-size-12, 12px); opacity: 0; transition: opacity 0.2s; white-space: nowrap; }
+.dxcfx-config .dxcfx-dirty.on { opacity: 0.85; }
+.dxcfx-config .dxcfx-dirty i { color: var(--color-warm-2, #ff6400); font-size: 0.6rem; vertical-align: middle; }
+
+/* ---- Effect Painter palette ---- */
+.dxcfx-palette .window-content { padding: 0.6rem; }
+.dxcfx-palette .dxcfx-pal { display: flex; flex-direction: column; gap: 0.35rem; }
+.dxcfx-palette .dxcfx-hint { margin: 0; font-size: var(--font-size-12, 12px); opacity: 0.8; }
+.dxcfx-palette h3 { margin: 0.4rem 0 0.1rem; font-size: var(--font-size-14, 14px); border-bottom: 1px solid var(--color-border, rgba(255,255,255,0.15)); }
+.dxcfx-palette .dxcfx-brush { display: grid; grid-template-columns: auto 1fr 4.2rem; gap: 0.4rem; align-items: center; }
+.dxcfx-palette .dxcfx-brush output { text-align: right; font-variant-numeric: tabular-nums; font-size: var(--font-size-12, 12px); }
+.dxcfx-palette .dxcfx-check { display: flex; align-items: center; gap: 0.4rem; }
+.dxcfx-palette .dxcfx-areas { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; max-height: 40vh; overflow-y: auto; }
+.dxcfx-palette .dxcfx-areas li { display: flex; align-items: center; gap: 2px; padding: 2px 3px; border-radius: 4px; border: 1px solid transparent; }
+.dxcfx-palette .dxcfx-areas li.active { border-color: var(--color-warm-2, #ff6400); background: rgba(255, 140, 40, 0.15); }
+.dxcfx-palette .dxcfx-areas li.hidden-area .dxcfx-area-name { opacity: 0.6; }
+.dxcfx-palette .dxcfx-area-name { flex: 1; min-width: 0; display: flex; align-items: center; gap: 0.4rem; cursor: pointer; }
+.dxcfx-palette .dxcfx-area-name i { flex: none; width: 1.2rem; text-align: center; }
+.dxcfx-palette .dxcfx-area-name span { display: flex; flex-direction: column; min-width: 0; }
+.dxcfx-palette .dxcfx-area-name strong, .dxcfx-palette .dxcfx-area-name small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dxcfx-palette .dxcfx-area-name small { opacity: 0.7; font-size: var(--font-size-11, 11px); }
+.dxcfx-palette .dxcfx-areas button { flex: 0 0 1.7rem; width: 1.7rem; height: 1.7rem; padding: 0; }
+.dxcfx-palette .dxcfx-areas button i { margin: 0; }
+.dxcfx-palette .dxcfx-pal-buttons { display: flex; gap: 0.3rem; margin-top: 0.3rem; }
+.dxcfx-palette .dxcfx-pal-buttons button { flex: 1; }
+.dxcfx-palette .dxcfx-pal-buttons button.bright { flex: 1.6; }
+.dxcfx-palette .dxcfx-current { text-align: center; }
+
+/* ---- Floating button on the current area ---- */
+#dxcfx-area-hud {
+  position: absolute; display: flex; gap: 4px; pointer-events: all; z-index: 10; white-space: nowrap; padding-bottom: 6px;
+}
+#dxcfx-area-hud button {
+  width: auto; height: 32px; min-width: 32px; padding: 0 0.6rem; font-size: 14px;
+  background: rgba(20, 16, 12, 0.85); color: #f0e6d8; border: 1px solid #ff9a3c; border-radius: 6px;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.6); cursor: pointer;
+}
+#dxcfx-area-hud button:hover { background: rgba(60, 36, 16, 0.95); box-shadow: 0 0 8px #ff9a3c; }
+#dxcfx-area-hud button i { margin: 0; }
+#dxcfx-area-hud .dxcfx-hud-main i { margin-right: 0.3rem; }
+
+.dxcfx-config .dxcfx-sound { display: flex; gap: 0.3rem; }
+.dxcfx-config .dxcfx-sound input { flex: 1; }
+.dxcfx-config .dxcfx-sound button { flex: 0 0 2rem; width: 2rem; padding: 0; }
+.dxcfx-config .dxcfx-sound button i { margin: 0; }
+.dxcfx-config .hint.dxcfx-left-hint { text-align: left; margin-top: 0.2rem; }
+.dxcfx-config .dxcfx-group-label { font-size: var(--font-size-11, 11px); text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.65; margin: 0.45rem 0 0.2rem; }
+.dxcfx-config .dxcfx-effects button { height: 3.1rem; }
+.dxcfx-palette .dxcfx-areas li.exclusion .dxcfx-area-name i { color: #ff6a7a; }
+.dxcfx-palette .dxcfx-order { display: flex; flex-direction: column; flex: 0 0 1.1rem; }
+.dxcfx-palette .dxcfx-areas .dxcfx-order button { flex: 0 0 0.85rem; width: 1.1rem; height: 0.85rem; font-size: 0.7rem; line-height: 1; border: none; background: none; }
+.dxcfx-palette .dxcfx-pal-buttons button.armed { border-color: #ff6a7a; box-shadow: 0 0 6px #ff6a7a; }
+.dxcfx-palette .dxcfx-order-hint { font-size: var(--font-size-11, 11px); }
+.dxcfx-config .dxcfx-exclusion { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 0.4rem; padding: 3rem 1.5rem; opacity: 0.9; }
+.dxcfx-config .dxcfx-exclusion i { font-size: 2.6rem; color: #ff6a7a; }
+.dxcfx-config .dxcfx-exclusion h3 { border: none; }
+.dxcfx-config .dxcfx-exclusion p { max-width: 42ch; margin: 0; }
+.dxcfx-config .dxcfx-exclusion.compact { flex-direction: row; text-align: left; padding: 0.5rem 0.7rem; gap: 0.7rem; margin-bottom: 0.4rem; border: 1px solid rgba(255,106,122,0.45); border-radius: 6px; background: rgba(255,60,90,0.08); }
+.dxcfx-config .dxcfx-exclusion.compact i { font-size: 1.5rem; }
+.dxcfx-config .dxcfx-exclusion.compact p { max-width: none; font-size: var(--font-size-12, 12px); }
+.dxcfx-config .dxcfx-empty { display: flex; flex-direction: column; align-items: center; gap: 0.6rem; padding: 2rem 1rem; text-align: center; opacity: 0.9; }
+.dxcfx-config .dxcfx-empty button { width: auto; padding: 0 1rem; }
