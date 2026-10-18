@@ -1,5 +1,11 @@
 # Dxcufgb's canvas effects
 
+[![Foundry v13](https://img.shields.io/github/v/release/dxcufgb/FoundryVTT-canvas-effects?label=Foundry%20v13&logo=foundryvirtualtabletop&color=ff6400)](https://github.com/dxcufgb/FoundryVTT-canvas-effects/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/dxcufgb/FoundryVTT-canvas-effects/module.zip?label=downloads&color=blue)](https://github.com/dxcufgb/FoundryVTT-canvas-effects/releases)
+[![Ko-fi](https://img.shields.io/badge/Ko--fi-support-FF5E5B?logo=kofi&logoColor=white)](https://ko-fi.com/dxcufgb)\
+[![CI](https://img.shields.io/github/actions/workflow/status/dxcufgb/FoundryVTT-canvas-effects/ci.yml?branch=main&label=CI)](https://github.com/dxcufgb/FoundryVTT-canvas-effects/actions/workflows/ci.yml)
+[![License](https://img.shields.io/github/license/dxcufgb/FoundryVTT-canvas-effects)](LICENSE)
+
 Paint areas and walls on the map and fill them with animated effects, all made for a map seen from above:
 
 | Category | Effects |
