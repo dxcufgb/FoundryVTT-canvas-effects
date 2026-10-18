@@ -50,6 +50,29 @@ with a fade-out, made mono and peak-normalised. Nothing else was changed.
 | `bats.ogg` | `bat_01..03.flac` from [Bat Screeches](https://opengameart.org/content/bat-screeches), scattered into a loop | AntumDeluge (OpenGameArt) | CC0 |
 | `rats.ogg` | `qubodupSqueakyRat*.flac` from [Squeaky Rat](https://opengameart.org/content/squeaky-rat) and `mouse-2.wav` from [Mouse imitation](https://opengameart.org/content/mouse-imitation), scattered into a loop | qubodup, AntumDeluge (OpenGameArt) | CC0 |
 | `spiders.ogg` | `monsters/Demon/Enemy_ Walker_Bug_LandFoliage.wav` from the [Fantasy Ambient Sound Effects Pack CC0](https://kmontesdev.itch.io/fantasy-ambient-sound-effects-pack-cc0), scattered into a loop | kmontesdev | CC0 |
+| `morning-birds.ogg` | `amb_morning.wav` from [AMB Morning Sounds (Perfect Loop)](https://opengameart.org/content/amb-morning-sounds-perfect-loop) | Kresiek The Furry (OpenGameArt) | CC0 |
+| `birds-chirp.ogg` | `birds-isaiah658_0.ogg` from [Ambient Bird Sounds](https://opengameart.org/content/ambient-bird-sounds) | isaiah658 (OpenGameArt) | CC0 |
+| `seagulls.ogg` | six clips (`Seagull Ambient 1, 3–6`, `Seagull Big Ambient 2`) from [Solo Seagull Sound Effects](https://opengameart.org/content/solo-seagull-sound-effects), scattered into a loop | Rango Mango (OpenGameArt) | CC0 |
+| `shore.ogg` | `Locations/Shore_01.wav` from the [Fantasy Ambient Sound Effects Pack CC0](https://kmontesdev.itch.io/fantasy-ambient-sound-effects-pack-cc0) | kmontesdev | CC0 |
+| `river.ogg` | `park_ambience_river.wav` from [Park ambiences](https://opengameart.org/content/park-ambiences) | Thimras (OpenGameArt) | CC0 |
+| `breeze.ogg` | `park_ambience_wind.wav` from the same pack | Thimras | CC0 |
+| `eerie-wind.ogg` | `space-wind_0.mp3` from [Space Winds](https://opengameart.org/content/space-winds) | aquinn (OpenGameArt) | CC0 |
+| `rain-roof.ogg` | `AMBIENCE/Rain Gutter .wav` from the [Fantasy Ambient Sound Effects Pack CC0](https://kmontesdev.itch.io/fantasy-ambient-sound-effects-pack-cc0) | kmontesdev | CC0 |
+| `rain-forest.ogg` | `AMBIENCE/Forest Rain 2.wav` from the same pack | kmontesdev | CC0 |
+| `rain-storm.ogg` | [Rolling_Distant_Thunder_In_Heavy_Rain_06](https://freesound.org/people/BlondPanda/sounds/778374/) (Freesound) | BlondPanda | CC0 |
+| `fireplace.ogg` | `fire.wav` from [Fireplace Sound loop](https://opengameart.org/content/fireplace-sound-loop) | PagDev (OpenGameArt) | CC0 |
+| `swamp.ogg` | `swamp.ogg` from [Swamp Environment Audio](https://opengameart.org/content/swamp-environment-audio) | LokiF (OpenGameArt) | CC0 |
+| `flies.ogg` | `swamp_sounds/fly_3.ogg` from the same pack | LokiF | CC0 |
+| `frogs.ogg` | `croak_01, 03, 04` from [Frog Croaks](https://opengameart.org/content/frog-croaks) and `ribbit_01–03` from [Ribbit Frog Sounds](https://opengameart.org/content/ribbit-frog-sounds), scattered into a loop | EZduzziteh (OpenGameArt) | CC0 |
+| `owls.ogg` | [owl_hooting_000102_0145S3 …wav](https://freesound.org/people/Gerent/sounds/558396/) (Freesound), scattered into a loop | Gerent | CC0 |
+| `wolf.ogg` | [Cooper Creek 20160313_014852 solitary wolf howl very clear.wav](https://freesound.org/people/betchkal/sounds/500646/) (Freesound) | betchkal | CC0 |
+| `ice-creak.ogg` | [frozen lake](https://freesound.org/people/mentos987/sounds/818918/) (Freesound) | mentos987 | CC0 |
+| `singing-ice.ogg` | [rumbling_ice](https://freesound.org/people/aerror/sounds/847807/) (Freesound), from 1:02 | aerror | CC0 |
+| `horror.ogg` | `ambient_horror.wav` from [Ambient horror](https://opengameart.org/content/ambient-horror) | techiew (OpenGameArt) | CC0 |
+| `drips.ogg` | `atmosbasement.mp3_.flac` from [Dripping water loop](https://opengameart.org/content/dripping-water-loop) | Independent.nu (OpenGameArt) | CC0 |
+| `deep-rumble.ogg` | `rumble.wav` from [rumble fx](https://opengameart.org/content/rumble-fx) | cinameng (OpenGameArt) | CC0 |
+| `creaking-trees.ogg` | `tree_creak.flac` from [Tree Creaking](https://opengameart.org/content/tree-creaking) and `creak1–3.ogg` from [Kenney RPG Audio](https://kenney.nl/assets/rpg-audio), scattered into a loop | AntumDeluge (OpenGameArt), Kenney | CC0 |
+| `desert-night.ogg` | `Desert KalNight .wav` from the [Fantasy Ambient Sound Effects Pack CC0](https://kmontesdev.itch.io/fantasy-ambient-sound-effects-pack-cc0) | kmontesdev | CC0 |
 | `birdsong.ogg` | [WoodThrushinMorningShawneeForestMay272012.wav](https://freesound.org/people/kvgarlic/sounds/156826/), as edited for [Blanket](https://github.com/rafaelmardojai/blanket) | kvgarlic (edit: Porrumentzio) | CC0 |
 | `stream.ogg` | [stream2.wav](https://freesound.org/people/gluckose/sounds/333987/), via Blanket | gluckose | CC0 |
 | `wind.ogg` | [Wind blowing in a field in Texas, USA](https://freesound.org/people/felix.blume/sounds/217506/), as edited for Blanket | felix.blume (edit: Porrumentzio) | CC0 |
@@ -76,3 +99,7 @@ with a fade-out, made mono and peak-normalised. Nothing else was changed.
   local library and none was generated.
 - The nine Freesound thunder recordings were downloaded on 2026-10-18 from their pages above, signed
   in, as the original files; each page shows the CC0 licence.
+- The sounds from `morning-birds.ogg` to `desert-night.ogg` in the table above were taken from the
+  originals kept with the *The Thirteen Forgotten* adventure module (its `tools/generator/recordings/
+  _sourced/`, where each is recorded in `SOURCES.md`). Each source page was checked again on
+  2026-10-18 and shows CC0.
