@@ -7,13 +7,22 @@ comes from.
 The ambience loops were made mono and brought to about the same loudness (−20 LUFS, light peak
 limiting); the long recordings were cut to about a minute, with the cut crossfaded so the loop has
 no seam. The bat, rat and spider loops were put together from short clips, scattered over 24 s so
-they loop without a seam. Nothing else was changed.
+they loop without a seam. The thunder was cut to start just before each crack or roll, 10–14 s long
+with a fade-out, made mono and peak-normalised. Nothing else was changed.
 
 ## Thunder (`thunder/`)
 
 | File | Source | Author | Licence |
 |---|---|---|---|
-| `strike-1..3.ogg`, `near-1..3.ogg`, `distant-1..3.ogg` | Synthesised for this module (filtered noise) | Dxcufgb's canvas effects | CC0 |
+| `strike-1.ogg` | [big thunder clap](https://freesound.org/people/seth-m/sounds/458015/) (Freesound) | seth-m | CC0 |
+| `strike-2.ogg` | [thunder crack.wav](https://freesound.org/people/cognito%20perceptu/sounds/347853/) (Freesound) | cognito perceptu | CC0 |
+| `strike-3.ogg` | [Closeup Thunder Strike 01](https://freesound.org/people/loganzsound/sounds/840628/) (Freesound) | loganzsound | CC0 |
+| `near-1.ogg` | [Thunder Clap OWB KY 441x16.wav](https://freesound.org/people/Dave%20Welsh/sounds/194364/), from 13.9 s (Freesound) | Dave Welsh | CC0 |
+| `near-2.ogg` | [THUNDER long rumbling - no Rain - 4-CHANNEL-44kHz.wav](https://freesound.org/people/BlueDelta/sounds/367702/) (Freesound) | BlueDelta | CC0 |
+| `near-3.ogg` | [Thunder3](https://freesound.org/people/Yoyodaman234/sounds/267550/), from 5.4 s (Freesound) | Yoyodaman234 | CC0 |
+| `distant-1.ogg` | [Distant Thunder Clap_Gentle.wav](https://freesound.org/people/mikala_oidua/sounds/347562/) (Freesound) | mikala_oidua | CC0 |
+| `distant-2.ogg` | [Distant Thunder](https://freesound.org/people/richwise/sounds/361401/), from 1:31.9 (Freesound) | richwise | CC0 |
+| `distant-3.ogg` | [Distant Thunder](https://freesound.org/people/richwise/sounds/361401/), from 3:53.9 (Freesound) | richwise | CC0 |
 | `thunderclap.ogg` | `sfx100v2_thunder_01.ogg` from [100 CC0 SFX #2](https://opengameart.org/content/100-cc0-sfx-2) | rubberduck (OpenGameArt) | CC0 |
 
 ## Ambience (`ambience/`)
@@ -65,3 +74,5 @@ they loop without a seam. Nothing else was changed.
   states CC0: the kmontesdev pack as a whole ("CC0 Public Domain"), each OpenGameArt entry in its
   License field, and Droning Sound Effects also says the files are public domain. None came from a
   local library and none was generated.
+- The nine Freesound thunder recordings were downloaded on 2026-10-18 from their pages above, signed
+  in, as the original files; each page shows the CC0 licence.
