@@ -134,14 +134,27 @@
         <output></output>
       </div>
 
-      {{#if hasSound}}
       <h3>{{localize "DXCFX.App.Sound"}}</h3>
-      <div class="dxcfx-sound">
-        <input type="text" name="sound" value="{{sound}}" placeholder="{{localize 'DXCFX.App.SoundPath'}}">
-        <button type="button" data-action="browseSound" data-tooltip="{{localize 'DXCFX.App.Browse'}}"><i class="fa-solid fa-music"></i></button>
+      <div class="dxcfx-sliders">
+        <label>{{localize "DXCFX.App.SoundChoice"}}</label>
+        <select name="sound">{{#each sounds}}<option value="{{id}}" {{#if selected}}selected{{/if}}>{{localize label}}</option>{{/each}}</select>
+        <output></output>
+        {{#if hasSoundChoice}}
+        <label>{{localize "DXCFX.App.SoundVolume"}}</label>
+        <input type="range" name="soundVolume" min="0" max="1" step="0.01" value="{{soundVolume}}">
+        <output data-for="soundVolume">{{soundVolumeText}}</output>
+        <label data-tooltip="{{localize 'DXCFX.App.SoundRangeHint'}}">{{localize "DXCFX.App.SoundRange"}}</label>
+        <input type="range" name="soundRange" min="{{soundRangeMin}}" max="{{soundRangeMax}}" step="{{soundRangeStep}}" value="{{soundRange}}">
+        <output data-for="soundRange">{{soundRangeText}}</output>
+        {{/if}}
       </div>
-      <p class="hint dxcfx-left-hint">{{localize "DXCFX.App.SoundHint"}}</p>
+      {{#if soundCustom}}
+      <div class="dxcfx-sound">
+        <input type="text" name="soundSrc" value="{{soundSrc}}" placeholder="{{localize 'DXCFX.App.SoundPath'}}">
+        <button type="button" data-action="browseSound" data-tooltip="{{localize 'DXCFX.App.Browse'}}" {{#unless canBrowse}}disabled{{/unless}}><i class="fa-solid fa-music"></i></button>
+      </div>
       {{/if}}
+      <p class="hint dxcfx-left-hint">{{localize soundHint}}</p>
 
       {{#if hasLight}}
       <label class="dxcfx-check" data-tooltip="{{localize 'DXCFX.App.LightHint'}}">

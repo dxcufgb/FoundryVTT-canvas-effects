@@ -17,6 +17,7 @@ import { setOverride, effectImages, showLocal, shownAreas, editableArea, sceneBa
 import { AreaMesh } from "./area-mesh.js";
 import { areaBounds } from "./geometry.js";
 import { exportEffect, importEffect } from "./transfer.js";
+import { SOUNDS, CUSTOM, RANGE, soundOptions, isStrikeSound, withStandardSound, standardSoundsOn } from "./sounds.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -212,8 +213,20 @@ export class CanvasEffectConfig extends HandlebarsApplicationMixin(ApplicationV2
       light: !!layer.light,
       canAboveTokens: !def.under && !def.backdrop,
       aboveTokens: !!layer.aboveTokens,
-      hasSound: !!def.sound,
-      sound: layer.sound ?? "",
+      sounds: [
+        { id: "", label: "DXCFX.Sound.None", selected: !layer.sound },
+        ...soundOptions(layer.effect).map(id => ({ id, label: SOUNDS[id].label, selected: id === layer.sound })),
+        { id: CUSTOM, label: "DXCFX.Sound.Custom", selected: layer.sound === CUSTOM }
+      ],
+      hasSoundChoice: !!layer.sound,
+      soundCustom: layer.sound === CUSTOM,
+      soundSrc: layer.soundSrc ?? "",
+      soundVolume: layer.soundVolume,
+      soundVolumeText: FORMAT.pct(layer.soundVolume),
+      soundRange: layer.soundRange,
+      soundRangeMin: RANGE.min, soundRangeMax: RANGE.max, soundRangeStep: RANGE.step,
+      soundRangeText: game.i18n.format("DXCFX.Palette.Squares", { n: layer.soundRange }),
+      soundHint: isStrikeSound(layer.effect) ? "DXCFX.App.ThunderHint" : "DXCFX.App.SoundHint",
 
       presets: saved.map(p => ({ id: p.id, name: p.name, selected: p.id === this.presetId })),
       examples: EXAMPLES.map(p => ({ id: p.id, name: p.name, selected: p.id === this.presetId })),
@@ -261,8 +274,26 @@ export class CanvasEffectConfig extends HandlebarsApplicationMixin(ApplicationV2
       layer().aboveTokens = ev.currentTarget.checked;
       this.#changed();
     });
-    html.querySelector("input[name=sound]")?.addEventListener("change", ev => {
-      layer().sound = ev.currentTarget.value.trim();
+    html.querySelector("select[name=sound]")?.addEventListener("change", ev => {
+      layer().sound = ev.currentTarget.value;
+      this.#changed(true);
+    });
+    html.querySelector("input[name=soundSrc]")?.addEventListener("change", ev => {
+      layer().soundSrc = ev.currentTarget.value.trim();
+      this.#changed();
+    });
+    html.querySelector("input[name=soundVolume]")?.addEventListener("input", ev => {
+      const v = Number(ev.currentTarget.value);
+      layer().soundVolume = v;
+      const out = html.querySelector("output[data-for=soundVolume]");
+      if (out) out.textContent = FORMAT.pct(v);
+      this.#changed();
+    });
+    html.querySelector("input[name=soundRange]")?.addEventListener("input", ev => {
+      const v = Number(ev.currentTarget.value);
+      layer().soundRange = v;
+      const out = html.querySelector("output[data-for=soundRange]");
+      if (out) out.textContent = game.i18n.format("DXCFX.Palette.Squares", { n: v });
       this.#changed();
     });
     html.querySelector("select[name=fit]")?.addEventListener("change", ev => {
@@ -516,7 +547,11 @@ export class CanvasEffectConfig extends HandlebarsApplicationMixin(ApplicationV2
     // A slider the old effect didn't show was never set: the new effect's own default wins (Sunlight: 45).
     const shown = EFFECTS[old.effect]?.params ?? [];
     for (const k of Object.keys(EFFECTS[id].defaults ?? {})) if (!shown.includes(k)) delete keep[k];
-    this.cfg.layers[this.sel] = normalizeLayer({ ...keep, effect: id });
+    const layer = normalizeLayer({ ...keep, effect: id });
+    // A file of your own stays; otherwise the new effect gets its own standard sound.
+    if (old.sound === CUSTOM) Object.assign(layer, { sound: CUSTOM, soundSrc: old.soundSrc, soundVolume: old.soundVolume, soundRange: old.soundRange });
+    else withStandardSound(layer, standardSoundsOn());
+    this.cfg.layers[this.sel] = layer;
     this.#changed(true);
   }
 
@@ -538,7 +573,7 @@ export class CanvasEffectConfig extends HandlebarsApplicationMixin(ApplicationV2
   static #onAddLayer() {
     if (this.cfg.layers.length >= MAX_LAYERS) return;
     // A few particles are the most common thing to add on top.
-    this.cfg.layers.push(normalizeLayer({ effect: "particles", style: "motes" }));
+    this.cfg.layers.push(withStandardSound(normalizeLayer({ effect: "particles", style: "motes" }), standardSoundsOn()));
     this.sel = this.cfg.layers.length - 1;
     this.#changed(true);
   }
@@ -575,8 +610,8 @@ export class CanvasEffectConfig extends HandlebarsApplicationMixin(ApplicationV2
   static #onBrowseSound() {
     const FP = foundry.applications.apps.FilePicker.implementation;
     new FP({
-      type: "audio", current: this.layer.sound || "",
-      callback: path => { this.layer.sound = path; this.#changed(true); }
+      type: "audio", current: this.layer.soundSrc || "",
+      callback: path => { this.layer.sound = CUSTOM; this.layer.soundSrc = path; this.#changed(true); }
     }).render(true);
   }
 
@@ -588,6 +623,8 @@ export class CanvasEffectConfig extends HandlebarsApplicationMixin(ApplicationV2
     const p = presets().find(x => x.id === this.presetId) ?? EXAMPLES.find(x => x.id === this.presetId);
     if (!p) return;
     this.#setConfig(foundry.utils.deepClone(p.cfg));
+    // The examples come with the standard sounds (if wanted); saved effects keep their own.
+    if (EXAMPLES.includes(p)) for (const l of this.cfg.layers) withStandardSound(l, standardSoundsOn());
     this.#changed(true);
   }
 
@@ -687,7 +724,7 @@ export class CanvasEffectConfig extends HandlebarsApplicationMixin(ApplicationV2
   static #onResetLayer() {
     const l = this.layer;
     if (!l) return;
-    this.cfg.layers[this.sel] = normalizeLayer({ effect: l.effect, style: l.style, src: l.src, fit: l.fit });
+    this.cfg.layers[this.sel] = normalizeLayer({ effect: l.effect, style: l.style, src: l.src, fit: l.fit, sound: l.sound, soundSrc: l.soundSrc, soundVolume: l.soundVolume, soundRange: l.soundRange });
     this.#changed(true);
   }
 }

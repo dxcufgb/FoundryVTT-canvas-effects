@@ -14,6 +14,7 @@ import {
   AreaEffect, effectTextures, clamp, rand, pick, rad, hexToNum, mixColor, hash01, LIGHT_DIR, TAU
 } from "./effect-base.js";
 import { shapeBounds, shapeContains } from "./geometry.js";
+import { SOUNDS, CUSTOM } from "./sounds.js";
 
 const centerOf = b => ({ x: b.x + b.width / 2, y: b.y + b.height / 2 });
 
@@ -460,7 +461,8 @@ export class RainEffect extends AreaEffect {
 /**
  * Lightning: the whole area flashes, two or three times in quick succession, and sometimes a bolt
  * comes down on one spot. Strikes follow the clock, so every player sees the same strike at the
- * same moment. An optional thunder sound plays a moment later.
+ * same moment. Every strike has its own strength, and the thunder follows it: a strong strike with a
+ * bolt cracks right away, a weaker flash rumbles a moment later, a faint one rolls in from afar.
  */
 export class LightningEffect extends AreaEffect {
   build() {
@@ -493,7 +495,12 @@ export class LightningEffect extends AreaEffect {
       if (hash01(seed, k) > (st.chance ?? 0.75)) continue;
       const start = k * period + hash01(seed + 7, k) * period * 0.7;
       const t = now - start;
-      if (t >= 0 && t < 1.8) return { key: k, t, bolt: hash01(seed + 13, k) < (st.bolt ?? 0.5) };
+      if (t < 0 || t >= 1.8) continue;
+      const bolt = hash01(seed + 13, k) < (st.bolt ?? 0.5);
+      // How strong this strike is (0..1): a bolt is a close, strong strike.
+      const r = hash01(seed + 21, k);
+      const power = bolt ? 0.75 + 0.25 * r : 0.25 + 0.6 * r;
+      return { key: k, t, bolt, power };
     }
     return null;
   }
@@ -563,11 +570,8 @@ export class LightningEffect extends AreaEffect {
       this.current = s.key;
       if (s.bolt) this._drawBolt(s.key);
       else this.bolt.clear();
-      // Thunder a moment later (further away: later). Only for strikes that just began.
-      if (this.layer.sound && s.t < 0.25 && this.ctx.playSound) {
-        const delay = 300 + hash01((this.ctx.seed ?? 1) + 3, s.key) * 2200;
-        this.ctx.playSound(this.layer.sound, delay, s.bolt ? 1 : 0.6);
-      }
+      // Only for strikes that just began, not ones already under way when the scene loaded.
+      if (s.t < 0.25) this._thunder(s);
     }
     // Two or three quick flashes, then an afterglow.
     const t = s.t;
@@ -575,6 +579,7 @@ export class LightningEffect extends AreaEffect {
     let f = 0;
     for (let i = 0; i < peaks.length; i++) f = Math.max(f, (1 - i * 0.25) * Math.exp(-(((t - peaks[i]) / 0.04) ** 2)));
     f = Math.max(f, 0.18 * Math.exp(-t / 0.35));
+    f *= 0.4 + 0.8 * s.power;
     this.level = f;
     this.flash.tint = color;
     this.flash.alpha = f * (st.flash ?? 0.5);
@@ -586,6 +591,38 @@ export class LightningEffect extends AreaEffect {
       this.bolt.alpha = 0;
       this.glow.alpha = 0;
     }
+  }
+
+  /**
+   * How much a strike lights up the screen (0..1): its strength, the style's flash and the layer's
+   * opacity. Its thunder follows it.
+   */
+  _magnitude(s) {
+    const flash = clamp((this.styleDef.flash ?? 0.5) / 0.5, 0.3, 1.1);
+    return clamp(s.power * flash * (this.layer.alpha ?? 1), 0, 1);
+  }
+
+  /**
+   * The thunder of a strike, matched to how bright it is: a close crack with almost no delay for a
+   * strong bolt, a rumble a moment later for a medium flash, a quiet distant roll for a faint one.
+   * Louder the brighter the flash. A recorded thunderclap or a file of your own gets the same delay and volume.
+   */
+  _thunder(s) {
+    const l = this.layer;
+    if (!l.sound || !this.ctx.playSound) return;
+    const m = this._magnitude(s);
+    if (m < 0.04) return;
+    const seed = this.ctx.seed ?? 1, h = hash01(seed + 3, s.key);
+    const kind = s.bolt && m >= 0.55 ? "strike" : m >= 0.35 ? "near" : "distant";
+    // The fainter the flash, the further away the strike, and the longer its thunder takes.
+    const delay = kind === "strike" ? h * 250 : kind === "near" ? 400 + h * 1000 : 1400 + (1 - m) * 1500 + h * 800;
+    const volume = clamp(0.12 + 0.88 * m, 0, 1) * (l.soundVolume ?? 1);
+    const variant = 1 + (Math.floor(hash01(seed + 5, s.key) * 3) % 3);
+    const def = SOUNDS[l.sound];
+    const src = l.sound === CUSTOM ? l.soundSrc
+      : def?.set === "thunder" ? def.dir + `${kind}-${variant}.ogg`
+      : def?.src;
+    if (src) this.ctx.playSound(src, delay, volume, l);
   }
 
   lights() {
