@@ -207,17 +207,22 @@ vec4 effect() {
   water: `
 vec4 effect() {
   vec2 p = vWorld / uGrid; float t = uTime;
-  vec2 w1 = vec2(sin(p.x * 2.1 + t * 1.2 + sin(p.y * 1.3)), cos(p.y * 1.9 + t * 0.9 + sin(p.x * 1.7)));
-  vec2 w2 = vec2(sin(p.y * 0.6 + t * 0.5), cos(p.x * 0.5 + t * 0.4)) * uQ.y;
-  vec2 off = (w1 * 0.03 + w2 * 0.08) * uP.x * uGrid;
+  // Ripples, glints and swell are laid out along the Wind direction (fw) and across it (fs), so
+  // still water turns with the direction too. At direction 0, q is simply p.
+  vec2 fw = uWind.xy, fs = vec2(-fw.y, fw.x);
+  vec2 q = vec2(dot(p, fw), dot(p, fs));
+  vec2 w1 = vec2(sin(q.x * 2.1 + t * 1.2 + sin(q.y * 1.3)), cos(q.y * 1.9 + t * 0.9 + sin(q.x * 1.7)));
+  vec2 w2 = vec2(sin(q.y * 0.6 + t * 0.5), cos(q.x * 0.5 + t * 0.4)) * uQ.y;
+  vec2 o = (w1 * 0.03 + w2 * 0.08) * uP.x * uGrid;
+  vec2 off = fw * o.x + fs * o.y;
   vec3 c = uQ.x > 0.0 ? flowed(off, uWind.xy * uP.y * uGrid, uQ.x) : bd(off).rgb;
   float l = lum(c);
   c = clamp(mix(vec3(l), c, 1.0 + uP.z), 0.0, 1.0);
   c *= 0.95 + 0.1 * (w1.x * 0.5 + 0.5) * uP.x;
-  vec2 drift = uWind.xy * t * uQ.x * 2.0;
-  float g = noise(p * 5.0 + vec2(t * 0.7, -t * 0.5) - drift) * noise(p * 4.3 - vec2(t * 0.4, t * 0.8) - drift);
+  vec2 drift = vec2(t * uQ.x * 2.0, 0.0);
+  float g = noise(q * 5.0 + vec2(t * 0.7, -t * 0.5) - drift) * noise(q * 4.3 - vec2(t * 0.4, t * 0.8) - drift);
   c += uColor * smoothstep(0.55, 0.8, g) * uP.w;
-  if (uQ.y > 0.5) c += uColor2 * smoothstep(0.82, 0.95, sin(p.x * 0.8 + p.y * 0.6 - t * 1.1 + fbm(p) * 3.0)) * 0.25;
+  if (uQ.y > 0.5) c += uColor2 * smoothstep(0.82, 0.95, sin(q.x * 0.8 + q.y * 0.6 - t * 1.1 + fbm(p) * 3.0)) * 0.25;
   return vec4(c, 1.0) * uAlpha;
 }`,
   // uP: strength, speed, brighten, scale

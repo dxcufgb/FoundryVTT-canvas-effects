@@ -165,9 +165,10 @@ export class FlyerEffect extends AreaEffect {
         this.#wrap(f, 3 * g);
       }
     } else if (mode === "swarm") {
-      // The swarm's middle roams around the area.
-      this.swarm.x = b.x + b.width * (0.5 + 0.35 * Math.sin(time * 0.23));
-      this.swarm.y = b.y + b.height * (0.5 + 0.35 * Math.sin(time * 0.31 + 1));
+      // The swarm's middle roams around the area, kept a little downwind.
+      const lee = Math.min(0.25, 0.3 * w.s);
+      this.swarm.x = b.x + b.width * (0.5 + 0.3 * Math.sin(time * 0.23) + w.x * lee);
+      this.swarm.y = b.y + b.height * (0.5 + 0.3 * Math.sin(time * 0.31 + 1) + w.y * lee);
     }
 
     for (const f of this.flyers) {
@@ -179,8 +180,10 @@ export class FlyerEffect extends AreaEffect {
         y = f.flock.y - Math.sin(fh) * f.back + Math.cos(fh) * (f.side + wob);
         heading = fh;
       } else if (mode === "circle") {
+        // Circling on the wind: each orbit is carried downwind and back, slowly.
         f.orbit.a += f.orbit.w * dt * (st.speed ?? 1);
-        const cx = b.x + b.width / 2 + Math.sin(time * 0.05 + f.phase) * g, cy = b.y + b.height / 2;
+        const carry = (0.5 + 0.5 * Math.sin(time * 0.05 + f.phase)) * Math.min(3, w.s * 4) * g;
+        const cx = b.x + b.width / 2 + w.x * carry, cy = b.y + b.height / 2 + w.y * carry;
         x = cx + Math.cos(f.orbit.a) * f.orbit.r;
         y = cy + Math.sin(f.orbit.a) * f.orbit.r;
         heading = f.orbit.a + (f.orbit.w > 0 ? Math.PI / 2 : -Math.PI / 2);
@@ -188,7 +191,8 @@ export class FlyerEffect extends AreaEffect {
         // Swarm: each bat darts about erratically, pulled back toward the middle.
         const want = Math.atan2(this.swarm.y - f.y, this.swarm.x - f.x);
         const dist = Math.hypot(this.swarm.y - f.y, this.swarm.x - f.x);
-        f.heading += angleTo(f.heading, want) * Math.min(1, dist / (3 * g)) * 2.5 * dt + Math.sin(time * 7 + f.phase * 3) * 6 * dt;
+        f.heading += angleTo(f.heading, want) * Math.min(1, dist / (3 * g)) * 2.5 * dt + Math.sin(time * 7 + f.phase * 3) * 6 * dt
+          + angleTo(f.heading, travel) * Math.min(1, w.s) * 1.5 * dt;      // tend downwind, weaker than the pull back
         f.x += Math.cos(f.heading) * speed * dt;
         f.y += Math.sin(f.heading) * speed * dt;
         x = f.x; y = f.y; heading = f.heading;
