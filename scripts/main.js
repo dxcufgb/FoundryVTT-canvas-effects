@@ -41,6 +41,10 @@ Hooks.once("init", () => {
     choices: { high: "DXCFX.Settings.Quality.High", medium: "DXCFX.Settings.Quality.Medium", low: "DXCFX.Settings.Quality.Low" },
     onChange: () => rebuildAll()
   });
+  game.settings.register(MODULE_ID, "standardSounds", {
+    name: "DXCFX.Settings.StandardSounds.Name", hint: "DXCFX.Settings.StandardSounds.Hint",
+    scope: "world", config: true, type: Boolean, default: true
+  });
   game.settings.register(MODULE_ID, "brush", { scope: "client", config: false, type: Object, default: { width: 1, snap: true, feather: 0.25 } });
   game.settings.register(MODULE_ID, "lastEffect", { scope: "client", config: false, type: Object, default: {} });
 

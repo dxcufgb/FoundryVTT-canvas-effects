@@ -14,7 +14,7 @@ import {
   AreaEffect, effectTextures, clamp, rand, pick, rad, hexToNum, mixColor, hash01, LIGHT_DIR, TAU
 } from "./effect-base.js";
 import { shapeBounds, shapeContains } from "./geometry.js";
-import { MODULE_ID } from "./constants.js";
+import { SOUNDS, CUSTOM } from "./sounds.js";
 
 const centerOf = b => ({ x: b.x + b.width / 2, y: b.y + b.height / 2 });
 
@@ -605,20 +605,24 @@ export class LightningEffect extends AreaEffect {
   /**
    * The thunder of a strike, matched to how bright it is: a close crack with almost no delay for a
    * strong bolt, a rumble a moment later for a medium flash, a quiet distant roll for a faint one.
-   * Louder the brighter the flash. The layer's own sound file, if it has one, replaces the built-in ones.
+   * Louder the brighter the flash. A recorded thunderclap or a file of your own gets the same delay and volume.
    */
   _thunder(s) {
-    if (this.layer.thunder === false || !this.ctx.playSound) return;
+    const l = this.layer;
+    if (!l.sound || !this.ctx.playSound) return;
     const m = this._magnitude(s);
     if (m < 0.04) return;
     const seed = this.ctx.seed ?? 1, h = hash01(seed + 3, s.key);
     const kind = s.bolt && m >= 0.55 ? "strike" : m >= 0.35 ? "near" : "distant";
     // The fainter the flash, the further away the strike, and the longer its thunder takes.
     const delay = kind === "strike" ? h * 250 : kind === "near" ? 400 + h * 1000 : 1400 + (1 - m) * 1500 + h * 800;
-    const volume = clamp(0.12 + 0.88 * m, 0, 1);
+    const volume = clamp(0.12 + 0.88 * m, 0, 1) * (l.soundVolume ?? 1);
     const variant = 1 + (Math.floor(hash01(seed + 5, s.key) * 3) % 3);
-    const src = this.layer.sound || `modules/${MODULE_ID}/sounds/thunder-${kind}-${variant}.ogg`;
-    this.ctx.playSound(src, delay, volume);
+    const def = SOUNDS[l.sound];
+    const src = l.sound === CUSTOM ? l.soundSrc
+      : def?.set === "thunder" ? def.dir + `${kind}-${variant}.ogg`
+      : def?.src;
+    if (src) this.ctx.playSound(src, delay, volume);
   }
 
   lights() {

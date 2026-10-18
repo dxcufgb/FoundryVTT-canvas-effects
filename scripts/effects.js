@@ -3,7 +3,7 @@
  *
  * An area's effect is a stack of layers, drawn bottom to top:
  *   {layers: [{effect, style, alpha, speed, scale, density, direction, wind, color, blend, pulse, rainbow,
- *              src, fit (your image), light (casts Foundry light), thunder (lightning: plays thunder), sound (your own thunder file),
+ *              src, fit (your image), light (casts Foundry light), sound, soundSrc, soundVolume (see sounds.js),
  *              aboveTokens (drawn over the tokens; not for effects that redraw the map)}, ...]}
  *
  * The Wind direction slider (`direction`, in degrees) and the Wind slider (`wind`) should visibly
@@ -66,6 +66,7 @@ export const FITS = { tile: "DXCFX.Fit.Tile", stretch: "DXCFX.Fit.Stretch" };
 import { AreaEffect, BLEND_MODE, clamp, effectTextures, hexToNum } from "./effect-base.js";
 import { ColorEffect, FogEffect, ParticleEffect, ImageEffect } from "./effects-basic.js";
 import { FireEffect, GlowEffect, CandleEffect, RainEffect, LightningEffect } from "./effects-ambience.js";
+import { normalizeSound } from "./sounds.js";
 import { FallEffect, CloudEffect, SandstormEffect, StarEffect, GhostEffect } from "./effects-nature.js";
 import { FlyerEffect, CrawlerEffect, SwimmerEffect } from "./effects-animals.js";
 import { ShaderEffect } from "./effects-shader.js";
@@ -125,7 +126,7 @@ export const EFFECTS = {
     }
   },
   lightning: {
-    label: "Lightning", icon: "fa-solid fa-bolt", cls: LightningEffect, emissive: true, blend: "add", lights: true, sound: true,
+    label: "Lightning", icon: "fa-solid fa-bolt", cls: LightningEffect, emissive: true, blend: "add", lights: true,
     params: ["alpha", "density"],
     styles: {
       storm:   { label: "Storm",    color: "#dbe8ff", every: 8, chance: 0.75, bolt: 0.55, flash: 0.5 },
@@ -491,10 +492,7 @@ export function normalizeLayer(l = {}) {
   if (def.lights) out.light = l.light !== false;
   // Effects that redraw the map stay on the map; any other layer can be drawn above the tokens.
   if (!def.under && !def.backdrop) out.aboveTokens = l.aboveTokens === true;
-  if (def.sound) {
-    out.thunder = l.thunder !== false;
-    out.sound = typeof l.sound === "string" ? l.sound.trim() : "";
-  }
+  Object.assign(out, normalizeSound(l, effect));
   return out;
 }
 

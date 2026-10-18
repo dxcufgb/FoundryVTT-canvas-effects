@@ -80,6 +80,10 @@
         "Name": "Show canvas effects",
         "Hint": "Turn the effects off on this computer only, for example if the canvas is slow."
       },
+      "StandardSounds": {
+        "Name": "Standard sounds for new effects",
+        "Hint": "A new effect layer gets the sound that suits it (rain patters, fire crackles, lightning thunders). Turn this off to start every layer silent; you can still pick a sound for each layer. Layers you already made keep theirs."
+      },
       "Quality": {
         "Name": "Effect detail",
         "Hint": "How many particles and how sharp the edges are on this computer.",
@@ -87,6 +91,26 @@
         "Medium": "Medium",
         "Low": "Low"
       }
+    },
+    "Sound": {
+      "None": "None",
+      "Custom": "Your own file…",
+      "Thunder": "Thunder (crack, rumble or distant roll)",
+      "Thunderclap": "Thunderclap (recorded)",
+      "Hearth": "Crackling fire",
+      "RainSteady": "Steady rain",
+      "RainPatter": "Pattering rain",
+      "Wind": "Wind",
+      "Birdsong": "Birdsong",
+      "Crickets": "Crickets at night",
+      "Stream": "Babbling stream",
+      "Lapping": "Lapping water",
+      "Bubbles": "Bubbling",
+      "Boiling": "Boiling, bubbling",
+      "DroneDark": "Dark drone",
+      "DroneLow": "Low rumble",
+      "Arcane": "Arcane hum",
+      "Static": "Static"
     },
     "Param": {
       "Scale": "Size",
@@ -169,11 +193,12 @@
       "Cleared": "{name} has no effect now.",
       "YourEffects": "Your effects",
       "Examples": "Examples",
-      "Sound": "Thunder",
-      "Thunder": "Plays thunder",
-      "ThunderHint": "Each strike sounds as strong as it looks: a bright strike with a bolt cracks right away, a weaker flash rumbles a moment later, a faint one rolls in from far off, quietly.",
-      "SoundPath": "Your own sound file (optional)",
-      "SoundHint": "Thunder follows each strike on every player's computer, at the ambient volume, louder and sooner the brighter the flash. A file of your own replaces the built-in thunder.",
+      "Sound": "Sound",
+      "SoundChoice": "Sound",
+      "SoundVolume": "Volume",
+      "SoundPath": "Sound file",
+      "SoundHint": "Plays on a loop while the area is on the map, for every player, on the Ambient channel: louder the closer it is to what you look at and the stronger the layer (opacity, density).",
+      "ThunderHint": "Each strike sounds as strong as it looks: a bright strike with a bolt cracks right away, a weaker flash rumbles a moment later, a faint one rolls in from far off, quietly. Another sound gets the same delay and volume.",
       "Light": "Casts light",
       "LightHint": "Lights up the map and the tokens in a dark scene, like a light source (blocked by walls).",
       "AboveTokens": "Above the tokens",

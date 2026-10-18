@@ -11,6 +11,7 @@ import { AreaMesh } from "./area-mesh.js";
 import { customSources } from "./effects.js";
 import { sceneAreas, getArea } from "./store.js";
 import { syncLights, tickLights, clearLights } from "./lights.js";
+import { syncSounds, tickSounds, stopSounds, playOnce } from "./sounds.js";
 
 const state = {
   meshes: new Map(),        // area id -> AreaMesh
@@ -156,7 +157,7 @@ async function syncNow() {
       if (mesh.maskKey !== before || !mesh.dragging) { mesh.position.set(0, 0); mesh.dragging = false; }
     }
     else {
-      mesh = new AreaMesh(shown, { renderer: canvas.app.renderer, grid, quality: q, textures, maxMask: q < 1 ? 1024 : 2048, playSound, backdrop: sceneBackdrop(), exclusions: cuts });
+      mesh = new AreaMesh(shown, { renderer: canvas.app.renderer, grid, quality: q, textures, maxMask: q < 1 ? 1024 : 2048, playSound: effectSound, backdrop: sceneBackdrop(), exclusions: cuts });
       state.meshes.set(area.id, mesh);
       canvas.primary.addChild(mesh);
     }
@@ -168,6 +169,8 @@ async function syncNow() {
   // Light from the effects: only from areas the players can see, and only with effects on.
   const lit = enabled() ? areas.filter(a => a.visible).map(area => ({ area, mesh: meshFor(area.id) })).filter(x => x.mesh?.bounds) : [];
   syncLights(lit);
+  // Sounds: from what is shown (the GM also hears hidden areas, softer, as they see them faded).
+  syncSounds(enabled() ? areas.filter(a => a.shapes.length).map(area => ({ area, faded: !area.visible })) : []);
   attachGlows();
   startTicker();
 }
@@ -192,6 +195,7 @@ export function attachGlows() {
 export function clearAll() {
   for (const mesh of state.meshes.values()) if (!mesh.destroyed) mesh.destroy();
   state.meshes.clear();
+  stopSounds();
   if (canvas?.ready) syncLights([]);
 }
 
@@ -216,6 +220,7 @@ export function onTearDown() {
   for (const mesh of state.meshes.values()) if (!mesh.destroyed) mesh.destroy();
   state.meshes.clear();
   clearLights();
+  stopSounds();
   state.local.clear();
   state.overrides.clear();
 }
@@ -238,17 +243,10 @@ function tick() {
     mesh.update(dt);
   }
   tickLights();
+  tickSounds();
 }
 
-/** Thunder and other sounds from effects: played on this computer only, at the ambient volume. */
-function playSound(src, delay = 0, volume = 1) {
-  if (!src || !enabled()) return;
-  setTimeout(() => {
-    try {
-      const v = volume * game.settings.get("core", "globalAmbientVolume");
-      foundry.audio.AudioHelper.play({ src, volume: v, loop: false }, false);
-    } catch (err) {
-      console.warn(`${MODULE_ID} | could not play ${src}`, err);
-    }
-  }, delay);
+/** Thunder from effects: played on this computer only, on the Ambient channel. */
+function effectSound(src, delay = 0, volume = 1) {
+  if (src && enabled()) playOnce(src, delay, volume);
 }

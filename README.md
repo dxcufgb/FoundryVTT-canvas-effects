@@ -56,7 +56,8 @@ Every change shows in the preview and on the map right away. Nothing is saved un
 
 - **Casts light**: fire, candles, firelight and lightning add real Foundry light sources, so they light the map and the tokens in a dark scene (walls block them, lightning excepted).
 - **Above the tokens**: any layer except the filters and surfaces can be drawn over the tokens instead of under them, for rain, snow, clouds or lightning falling on everyone's heads. The other layers of the same effect stay under the tokens, so a fog layer can stay on the ground below the rain.
-- **Thunder**: lightning comes with its own thunder, matched to each flash. Every strike has its own strength: a bright strike with a bolt cracks almost at once, loud; a medium flash rumbles a moment later; a faint flash rolls in from far off, quietly and late. The layer's opacity and the style's flash count too, so the Distant style mostly rumbles far away. Untick **Plays thunder** to keep a layer silent, or pick a sound file of your own to play instead (it gets the same volume and delay). Strikes follow the clock, so every player sees and hears the same one.
+- **Sounds**: every layer can make a sound, chosen under **Sound** in the effect window: one of the built-in sounds offered for its effect, a file of your own, or none, with its own volume. Sounds play for every player on Foundry's **Ambient** channel, louder the closer the area is to what you are looking at (fading out about a screen away) and the stronger the layer (its opacity and density). Several areas with the same sound play it once, louder. The GM also hears hidden areas, softer.
+- **Thunder**: lightning plays thunder matched to each flash. Every strike has its own strength: a bright strike with a bolt cracks almost at once, loud; a medium flash rumbles a moment later; a faint flash rolls in from far off, quietly and late. The layer's opacity and the style's flash count too, so the Distant style mostly rumbles far away. A recorded thunderclap or a file of your own gets the same volume and delay. Strikes follow the clock, so every player sees and hears the same one.
 - **Examples** in the saved effects list: Fireplace, Firelight, Campfire, Candles, Ritual circle, Heavy rain, Thunderstorm. Paint the firebox for a fire, one brush dot per candle (a stroke is a row of candles), the whole map for rain.
 
 **Saved effects** are kept with your user and can be put on any area. **Export** saves an effect, with any images of your own, as one `.canvas-effect.json` file; **Import** reads it in any world (the images are uploaded into `worlds/<world>/dxcufgbs-canvas-effects/imported/`).
@@ -64,6 +65,29 @@ Every change shows in the preview and on the map right away. Nothing is saved un
 **Filters and surfaces** (Colour Grade, Underwater, Old Film, Glitch, Lava Flow, Living Water, Heat Haze, Vortex, Bloom) redraw the scene's background image inside the painted area. They are drawn just above the map and below tiles, so they need a scene with a background image, and tiles stay on top of them.
 
 **Sunlight** follows the layer's **Wind direction**, the way the light travels (0° east, 90° south, 180° west, −90° north): Sunbeams and Sunset run along it and Dappled Light drifts along it; Light from Above ignores it. A new Sunlight layer starts at 45° (light from the top left).
+
+**Built-in sounds** (all CC0 or public domain; sources in [`sounds/CREDITS.md`](sounds/CREDITS.md)). A new layer gets its effect's standard sound (in bold) unless the *Standard sounds for new effects* setting is off; examples get them too, your saved effects keep their own.
+
+| Effect | Sounds |
+| --- | --- |
+| Lightning | **Thunder** (crack, rumble or distant roll), Thunderclap (recorded) |
+| Rain | **Steady rain**, Pattering rain |
+| Snow, Sandstorm | **Wind** |
+| Clouds, Leaves, Heat Haze | Wind (Leaves: also Birdsong; Heat Haze: also Low rumble) |
+| Fog & Smoke | Dark drone, Low rumble, Wind |
+| Fire | **Crackling fire** |
+| Candles, Embers, Light & Glow | Crackling fire, quietly (Light & Glow: also Low rumble) |
+| Fireflies | **Crickets at night** (Stars: the same, not standard) |
+| Ghosts | **Dark drone**, Low rumble, Arcane hum |
+| Birds | **Birdsong** |
+| Bats | Low rumble |
+| Living Water | **Lapping water**, Babbling stream, Bubbling (Fish: the same, not standard) |
+| Underwater | **Bubbling**, Low rumble |
+| Lava Flow | **Boiling, bubbling**, Bubbling, Crackling fire |
+| Vortex | **Arcane hum**, Dark drone, Lapping water |
+| Glitch | Static |
+
+Every other effect can play a file of your own.
 
 **Glowing layers** (fire, candles, embers, fireflies, ghosts, stars, lava, sunlight, lightning) are also drawn into Foundry's lighting, so they stay bright in a dark scene.
 
@@ -73,6 +97,7 @@ Every change shows in the preview and on the map right away. Nothing is saved un
 | --- | --- | --- |
 | Show canvas effects | this computer | Turn the effects off, for example if the canvas is slow |
 | Effect detail | this computer | Particle counts and edge sharpness |
+| Standard sounds for new effects | world (GM) | On (default): a new layer gets the sound that suits its effect. Off: new layers start silent. Existing layers keep their sound either way |
 
 ## For developers
 
