@@ -386,9 +386,10 @@ export function playOnce(src, delay = 0, volume = 1, where = null) {
   setTimeout(async () => {
     try {
       let muffled = false;
-      const ears = where?.shapes?.length ? listeners() : null;
-      if (ears) {
-        const h = hearing({ ...where, bounds: areaBounds(where.shapes) }, ears);
+      const bounds = where?.shapes?.length ? areaBounds(where.shapes) : null;
+      if (bounds) {
+        const ears = listeners();
+        const h = ears ? hearing({ ...where, bounds }, ears) : { volume: nearness(bounds), muffled: false };
         if (!h.volume) return;
         volume *= h.volume * (h.muffled ? MUFFLED : 1);
         muffled = h.muffled;
