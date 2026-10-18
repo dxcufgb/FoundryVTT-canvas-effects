@@ -334,10 +334,11 @@ export class CandleEffect extends AreaEffect {
       c.halo.scale.set(c.haloSize * (0.92 + 0.08 * f));
       c.halo.tint = colors[1];
       c.halo.alpha = (st.haloAlpha ?? 0.45) * f;
-      // The flame leans downwind and stretches; without wind it sways a little.
-      const sway = Math.sin(t * 2.1) * 0.35 * (1 - lean);
+      // The flame leans downwind and stretches, however light the style's wind; only in still air
+      // (Wind at 0) does it rest at its usual slant. It sways a little, less the stronger the wind.
+      const sway = Math.sin(t * 2.1) * 0.35 * (1 - lean) + Math.sin(t * 5) * 0.15 * lean;
       c.flame.position.set(x, y);
-      c.flame.rotation = lean > 0.05 ? angle + Math.sin(t * 5) * 0.15 : -Math.PI / 4 + sway;
+      c.flame.rotation = (lean > 0 ? angle : -Math.PI / 4) + sway;
       c.flame.scale.set(c.flameSize * (1 + lean * 1.2) * f, c.flameSize * (0.8 + 0.2 * f));
       c.flame.tint = colors[1];
       c.flame.alpha = 0.9 * f;
@@ -415,10 +416,11 @@ export class RainEffect extends AreaEffect {
     const st = this.styleDef, g = this.ctx.grid;
     const w = this.wind;
     const k = this.layer.scale;
-    // Where a drop is while it is still high up, per unit of height: toward the light, and upwind.
-    // (Strong wind slants the rain more, but a drop never starts more than ~1.4 squares off its spot.)
-    const height = (st.height ?? 0.7) * g;
-    const slant = Math.min(1.6, w.s) * (st.slant ?? 0.6) * g;
+    // Where a drop is while it is still high up, per unit of height: a little toward the light, and
+    // upwind. The wind's share is the larger one, so the rain clearly follows the Wind direction even
+    // in a drizzle; it grows with the square root of the wind, so a storm stays within ~1.3 squares.
+    const height = (st.height ?? 0.25) * g;
+    const slant = Math.sqrt(Math.min(1.6, w.s)) * (st.slant ?? 0.9) * g;
     const ox = (LIGHT_DIR.x * height) - w.x * slant;
     const oy = (LIGHT_DIR.y * height) - w.y * slant;
     const len = Math.hypot(ox, oy) || 1;

@@ -118,8 +118,11 @@ export class FallEffect extends AreaEffect {
   animate(dt, time) {
     const st = this.styleDef, g = this.ctx.grid;
     const w = this.wind;
-    const height = (st.height ?? 1.2) * g;
-    const slant = Math.min(2, w.s) * (st.slant ?? 1.2) * g;
+    // While high, a flake is shifted a little toward the light and more upwind, so what falls
+    // clearly drifts with the Wind direction. The wind's share grows with its square root, so
+    // light snow still shows the direction and a blizzard doesn't start too far off its spot.
+    const height = (st.height ?? 0.5) * g;
+    const slant = Math.sqrt(Math.min(2, w.s)) * (st.slant ?? 1.4) * g;
     const ox = LIGHT_DIR.x * height - w.x * slant, oy = LIGHT_DIR.y * height - w.y * slant;
     const flutter = (st.flutter ?? 0.25) * g;
     for (const p of this.parts) {
@@ -380,13 +383,16 @@ export class GhostEffect extends AreaEffect {
       }
       // Wander: the heading turns slowly and smoothly; outside the area they turn back.
       gh.heading += Math.sin(time * 0.5 + gh.phase) * 0.9 * dt;
-      if (!ctx.contains(gh.x, gh.y)) {
+      const inside = ctx.contains(gh.x, gh.y);
+      if (!inside) {
         const b = ctx.rawBounds;
         const want = Math.atan2(b.y + b.height / 2 - gh.y, b.x + b.width / 2 - gh.x);
         gh.heading += Math.sin(want - gh.heading) * 2 * dt;
       }
+      // They drift with the wind, but not out of the area: outside it they only turn back.
       const speed = (st.speed ?? 0.45) * g;
-      const vx = Math.cos(gh.heading) * speed + w.x * w.s * g * 0.2, vy = Math.sin(gh.heading) * speed + w.y * w.s * g * 0.2;
+      const drift = inside ? w.s * g * 0.6 : 0;
+      const vx = Math.cos(gh.heading) * speed + w.x * drift, vy = Math.sin(gh.heading) * speed + w.y * drift;
       gh.x += vx * dt; gh.y += vy * dt;
       const k = gh.age / gh.life;
       const fade = Math.min(1, k / 0.2, (1 - k) / 0.25);

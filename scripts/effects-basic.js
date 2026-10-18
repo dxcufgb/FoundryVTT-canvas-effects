@@ -87,13 +87,19 @@ export class ParticleEffect extends AreaEffect {
 
   animate(dt, time) {
     const st = this.styleDef;
-    const wander = (st.wander ?? 0.2) * this.ctx.grid;
+    const g = this.ctx.grid;
+    const wander = (st.wander ?? 0.2) * g;
+    // Particles that fly off every way (fireflies, sparks) have no direction of their own, so a
+    // light breeze (squares per second, times the Wind slider) carries them along the Wind direction.
+    const dir = rad(this.layer.direction);
+    const breeze = (st.breeze ?? ((st.spread ?? 20) >= 180 ? 0.1 : 0)) * (this.layer.wind ?? 1) * g;
+    const bx = Math.cos(dir) * breeze, by = Math.sin(dir) * breeze;
     for (const p of this.parts) {
       p.age += dt;
       if (p.age >= p.life) this.spawn(p);
       const k = p.age / p.life;
-      p.x += p.vx * dt + Math.sin(time * 1.7 + p.phase) * wander * dt;
-      p.y += p.vy * dt + Math.cos(time * 1.3 + p.phase) * wander * dt;
+      p.x += (p.vx + bx) * dt + Math.sin(time * 1.7 + p.phase) * wander * dt;
+      p.y += (p.vy + by) * dt + Math.cos(time * 1.3 + p.phase) * wander * dt;
       p.s.position.set(p.x, p.y);
       let a = Math.sin(Math.PI * k);                                // fade in and out
       if (st.flicker) a *= 0.65 + 0.35 * Math.sin(time * 14 + p.phase * 5);
@@ -155,8 +161,10 @@ export class ImageEffect extends AreaEffect {
         s.tilePosition.y += Math.sin(dir) * st.flow * g * dt;
       }
       if (st.sway) {
-        s.tilePosition.x += Math.cos(time * 0.8) * st.sway * g * dt;
-        s.tilePosition.y += Math.sin(time * 0.6) * st.sway * g * dt * 0.6;
+        // Swaying back and forth mostly along the Wind direction, a little across it.
+        const along = Math.cos(time * 0.8) * st.sway * g * dt, across = Math.sin(time * 0.6) * st.sway * g * dt * 0.6;
+        s.tilePosition.x += Math.cos(dir) * along - Math.sin(dir) * across;
+        s.tilePosition.y += Math.sin(dir) * along + Math.cos(dir) * across;
       }
     } else if (st.sway) {
       s.rotation = Math.sin(time * 0.5) * 0.02 * st.sway * 4;

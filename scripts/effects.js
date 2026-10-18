@@ -6,6 +6,9 @@
  *              src, fit (your image), light (casts Foundry light), sound (lightning: thunder),
  *              aboveTokens (drawn over the tokens; not for effects that redraw the map)}, ...]}
  *
+ * The Wind direction slider (`direction`, in degrees) and the Wind slider (`wind`) should visibly
+ * steer every effect that lists them: use this.wind in effect-base.js.
+ *
  * ADDING AN EFFECT
  * ----------------
  * 1. Write a class that extends AreaEffect (below). Build your display objects in build() and move
@@ -150,7 +153,7 @@ export const EFFECTS = {
       motes:   { label: "Fireflies", emissive: true, color: "#ffe27a", texture: "dot", rate: 1.2, dir: 0, spread: 180, speed: [0.02, 0.1], life: [3, 6], size: [0.08, 0.14], wander: 0.35, flicker: true },
       snow:    { label: "Snow",     color: "#ffffff", texture: "flake", rate: 4, dir: 90, spread: 15, speed: [0.25, 0.5], life: [3, 6], size: [0.04, 0.09], wander: 0.2, blend: "normal" },
       bubbles: { label: "Bubbles",  color: "#9fe8ff", texture: "bubble", rate: 1, dir: -90, spread: 15, speed: [0.1, 0.3], life: [2, 4], size: [0.12, 0.25], wander: 0.15, blend: "normal" },
-      sparks:  { label: "Arcane Sparks", emissive: true, color: "#b48cff", texture: "dot", rate: 2.5, dir: 0, spread: 180, speed: [0.3, 0.9], life: [0.6, 1.4], size: [0.04, 0.08], wander: 0.6, shrink: true }
+      sparks:  { label: "Arcane Sparks", emissive: true, color: "#b48cff", texture: "dot", rate: 2.5, dir: 0, spread: 180, breeze: 0.4, speed: [0.3, 0.9], life: [0.6, 1.4], size: [0.04, 0.08], wander: 0.6, shrink: true }
     }
   },
   color: {
@@ -245,7 +248,7 @@ Object.assign(EFFECTS, {
     styles: {
       fireflies: { label: "Fireflies", color: "#e0ff70", texture: "dot", rate: 1.4, dir: 0, spread: 180, speed: [0.02, 0.12], life: [4, 8], size: [0.12, 0.2], wander: 0.4, blink: true, blinkRate: 1.3 },
       fairy:     { label: "Fairy Lights", color: "#ffd0f0", texture: "flake", rate: 1.2, dir: 0, spread: 180, speed: [0.05, 0.2], life: [3, 6], size: [0.05, 0.09], wander: 0.6, blink: true, blinkRate: 2.2 },
-      glowworms: { label: "Glow-worms", color: "#6ae8ff", texture: "dot", rate: 2, dir: 0, spread: 180, speed: [0.005, 0.02], life: [6, 10], size: [0.04, 0.07], wander: 0.05, blink: true, blinkRate: 0.5 },
+      glowworms: { label: "Glow-worms", color: "#6ae8ff", texture: "dot", rate: 2, dir: 0, spread: 180, breeze: 0.03, speed: [0.005, 0.02], life: [6, 10], size: [0.04, 0.07], wander: 0.05, blink: true, blinkRate: 0.5 },
       swamp:     { label: "Swamp Lights", color: "#9aff8a", texture: "dot", rate: 0.4, dir: 0, spread: 180, speed: [0.05, 0.15], life: [5, 9], size: [0.12, 0.2], wander: 0.3, blink: true, blinkRate: 0.7 }
     }
   },
