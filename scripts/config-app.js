@@ -213,6 +213,7 @@ export class CanvasEffectConfig extends HandlebarsApplicationMixin(ApplicationV2
       canAboveTokens: !def.under && !def.backdrop,
       aboveTokens: !!layer.aboveTokens,
       hasSound: !!def.sound,
+      thunder: layer.thunder !== false,
       sound: layer.sound ?? "",
 
       presets: saved.map(p => ({ id: p.id, name: p.name, selected: p.id === this.presetId })),
@@ -259,6 +260,10 @@ export class CanvasEffectConfig extends HandlebarsApplicationMixin(ApplicationV2
     });
     html.querySelector("input[name=aboveTokens]")?.addEventListener("change", ev => {
       layer().aboveTokens = ev.currentTarget.checked;
+      this.#changed();
+    });
+    html.querySelector("input[name=thunder]")?.addEventListener("change", ev => {
+      layer().thunder = ev.currentTarget.checked;
       this.#changed();
     });
     html.querySelector("input[name=sound]")?.addEventListener("change", ev => {

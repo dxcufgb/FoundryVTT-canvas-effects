@@ -3,7 +3,7 @@
  *
  * An area's effect is a stack of layers, drawn bottom to top:
  *   {layers: [{effect, style, alpha, speed, scale, density, direction, wind, color, blend, pulse, rainbow,
- *              src, fit (your image), light (casts Foundry light), sound (lightning: thunder),
+ *              src, fit (your image), light (casts Foundry light), thunder (lightning: plays thunder), sound (your own thunder file),
  *              aboveTokens (drawn over the tokens; not for effects that redraw the map)}, ...]}
  *
  * The Wind direction slider (`direction`, in degrees) and the Wind slider (`wind`) should visibly
@@ -491,7 +491,10 @@ export function normalizeLayer(l = {}) {
   if (def.lights) out.light = l.light !== false;
   // Effects that redraw the map stay on the map; any other layer can be drawn above the tokens.
   if (!def.under && !def.backdrop) out.aboveTokens = l.aboveTokens === true;
-  if (def.sound) out.sound = typeof l.sound === "string" ? l.sound.trim() : "";
+  if (def.sound) {
+    out.thunder = l.thunder !== false;
+    out.sound = typeof l.sound === "string" ? l.sound.trim() : "";
+  }
   return out;
 }
 

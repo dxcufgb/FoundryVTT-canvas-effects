@@ -136,6 +136,10 @@
 
       {{#if hasSound}}
       <h3>{{localize "DXCFX.App.Sound"}}</h3>
+      <label class="dxcfx-check" data-tooltip="{{localize 'DXCFX.App.ThunderHint'}}">
+        <input type="checkbox" name="thunder" {{checked thunder}}>
+        {{localize "DXCFX.App.Thunder"}}
+      </label>
       <div class="dxcfx-sound">
         <input type="text" name="sound" value="{{sound}}" placeholder="{{localize 'DXCFX.App.SoundPath'}}">
         <button type="button" data-action="browseSound" data-tooltip="{{localize 'DXCFX.App.Browse'}}"><i class="fa-solid fa-music"></i></button>
