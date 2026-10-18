@@ -71,20 +71,24 @@ Every change shows in the preview and on the map right away. Nothing is saved un
 | Effect | Sounds |
 | --- | --- |
 | Lightning | **Thunder** (crack, rumble or distant roll), Thunderclap (recorded) |
-| Rain | **Steady rain**, Pattering rain |
-| Snow, Sandstorm | **Wind** |
-| Clouds, Leaves, Heat Haze | Wind (Leaves: also Birdsong; Heat Haze: also Low rumble) |
-| Fog & Smoke | Dark drone, Low rumble, Wind |
+| Rain | **Steady rain**, Pattering rain, Heavy downpour, Rain and thunder |
+| Snow, Sandstorm | **Wind**, Howling wind |
+| Clouds | Wind, Howling wind |
+| Leaves, Heat Haze | Wind (Leaves: also Forest, Birdsong; Heat Haze: also Low rumble) |
+| Fog & Smoke | Dark drone, Low rumble, Cave, Ghostly whispers, Wind |
 | Fire | **Crackling fire** |
-| Candles, Embers, Light & Glow | Crackling fire, quietly (Light & Glow: also Low rumble) |
-| Fireflies | **Crickets at night** (Stars: the same, not standard) |
-| Ghosts | **Dark drone**, Low rumble, Arcane hum |
-| Birds | **Birdsong** |
-| Bats | Low rumble |
+| Candles, Embers, Light & Glow | Crackling fire, quietly (Light & Glow: also Low rumble, Arcane hum) |
+| Fireflies | **Crickets at night**, Forest (Stars: Crickets at night, not standard) |
+| Ghosts | **Ghostly whispers**, Dark drone, Low rumble, Eerie swell |
+| Birds | **Birdsong**, Forest |
+| Bats | **Bat squeaks**, Cave, Low rumble |
+| Rats | Rat squeaks, Dungeon, Cave |
+| Spiders | Skittering, Cave, Dungeon |
 | Living Water | **Lapping water**, Babbling stream, Bubbling (Fish: the same, not standard) |
 | Underwater | **Bubbling**, Low rumble |
+| Old Film | Film projector |
 | Lava Flow | **Boiling, bubbling**, Bubbling, Crackling fire |
-| Vortex | **Arcane hum**, Dark drone, Lapping water |
+| Vortex | **Arcane hum**, Eerie swell, Dark drone, Lapping water |
 | Glitch | Static |
 
 Every other effect can play a file of your own.
