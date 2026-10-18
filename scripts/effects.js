@@ -30,6 +30,8 @@
  *    Return Foundry light sources from lights() (see effect-base.js) and set `lights: true` in EFFECTS
  *    to get a "Casts light" checkbox.
  * 2. Add it to EFFECTS with a label, an icon, its styles and the sliders it uses (see PARAMS).
+ *    Optional: `defaults: {param: value}` for slider values of its own (used when a layer has none),
+ *    `hints: {param: "i18n key"}` for a tooltip on a slider.
  *
  * This file only needs the global PIXI (v7), so it runs both on the canvas and in the preview.
  */
@@ -347,7 +349,9 @@ Object.assign(EFFECTS, {
     }
   },
   sunlight: {
-    label: "Sunlight", icon: "fa-solid fa-sun", cls: ShaderEffect, emissive: true, glsl: "sunlight", blend: "add", params: SHADER,
+    label: "Sunlight", icon: "fa-solid fa-sun", cls: ShaderEffect, emissive: true, glsl: "sunlight", blend: "add",
+    // Direction: the way the light travels. 45 (from the top left) is the look from before it could turn.
+    params: ["scale", "speed", "alpha", "direction"], defaults: { direction: 45 }, hints: { direction: "DXCFX.Param.SunlightDirectionHint" },
     styles: {
       rays:    { label: "Sunbeams", color: "#ffe6a8", p: [0.6, 0.04, 0.35, 0], scaleP: [0] },
       dappled: { label: "Dappled Light", color: "#fff0b0", p: [0.9, 0.02, 0.35, 1], scaleP: [0] },
@@ -477,7 +481,7 @@ export function normalizeLayer(l = {}) {
   const def = EFFECTS[effect];
   const style = def.styles[l.style] ? l.style : Object.keys(def.styles)[0];
   const out = { effect, style };
-  for (const [k, p] of Object.entries(PARAMS)) out[k] = clamp(num(l[k], p.default), p.min, p.max);
+  for (const [k, p] of Object.entries(PARAMS)) out[k] = clamp(num(l[k], def.defaults?.[k] ?? p.default), p.min, p.max);
   out.color = /^#[0-9a-f]{6}$/i.test(l.color ?? "") ? l.color.toLowerCase() : null;
   out.blend = BLENDS[l.blend] ? l.blend : null;               // null: the style's own
   if (effect === IMAGE) {

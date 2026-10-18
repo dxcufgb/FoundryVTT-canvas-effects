@@ -160,7 +160,7 @@ export class CanvasEffectConfig extends HandlebarsApplicationMixin(ApplicationV2
     const def = EFFECTS[layer.effect];
     const isImage = layer.effect === IMAGE;
     const slider = (name, p = PARAMS[name]) =>
-      ({ name, label: p.label, min: p.min, max: p.max, step: p.step, fmt: p.fmt, value: layer[name], text: FORMAT[p.fmt](layer[name]) });
+      ({ name, label: p.label, hint: def.hints?.[name] ?? null, min: p.min, max: p.max, step: p.step, fmt: p.fmt, value: layer[name], text: FORMAT[p.fmt](layer[name]) });
     const saved = presets();
     if (this.presetId && !saved.some(p => p.id === this.presetId) && !EXAMPLES.some(p => p.id === this.presetId)) this.presetId = null;
 
@@ -513,6 +513,9 @@ export class CanvasEffectConfig extends HandlebarsApplicationMixin(ApplicationV2
     if (id === old.effect || !EFFECTS[id]) return;
     // Keep the fine-tuning, change what is drawn.
     const keep = { alpha: old.alpha, speed: old.speed, scale: old.scale, density: old.density, direction: old.direction, pulse: old.pulse, rainbow: old.rainbow };
+    // A slider the old effect didn't show was never set: the new effect's own default wins (Sunlight: 45).
+    const shown = EFFECTS[old.effect]?.params ?? [];
+    for (const k of Object.keys(EFFECTS[id].defaults ?? {})) if (!shown.includes(k)) delete keep[k];
     this.cfg.layers[this.sel] = normalizeLayer({ ...keep, effect: id });
     this.#changed(true);
   }

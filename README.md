@@ -63,6 +63,8 @@ Every change shows in the preview and on the map right away. Nothing is saved un
 
 **Filters and surfaces** (Colour Grade, Underwater, Old Film, Glitch, Lava Flow, Living Water, Heat Haze, Vortex, Bloom) redraw the scene's background image inside the painted area. They are drawn just above the map and below tiles, so they need a scene with a background image, and tiles stay on top of them.
 
+**Sunlight** follows the layer's **Wind direction**, the way the light travels (0° east, 90° south, 180° west, −90° north): Sunbeams and Sunset run along it and Dappled Light drifts along it; Light from Above ignores it. A new Sunlight layer starts at 45° (light from the top left).
+
 **Glowing layers** (fire, candles, embers, fireflies, ghosts, stars, lava, sunlight, lightning) are also drawn into Foundry's lighting, so they stay bright in a dark scene.
 
 ## Settings
