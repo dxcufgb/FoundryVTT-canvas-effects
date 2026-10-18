@@ -192,7 +192,7 @@ export class FlyerEffect extends AreaEffect {
         const want = Math.atan2(this.swarm.y - f.y, this.swarm.x - f.x);
         const dist = Math.hypot(this.swarm.y - f.y, this.swarm.x - f.x);
         f.heading += angleTo(f.heading, want) * Math.min(1, dist / (3 * g)) * 2.5 * dt + Math.sin(time * 7 + f.phase * 3) * 6 * dt
-          + angleTo(f.heading, travel) * Math.min(1, w.s) * 3 * dt;        // and they tend to fly downwind
+          + angleTo(f.heading, travel) * Math.min(1, w.s) * 1.5 * dt;      // tend downwind, weaker than the pull back
         f.x += Math.cos(f.heading) * speed * dt;
         f.y += Math.sin(f.heading) * speed * dt;
         x = f.x; y = f.y; heading = f.heading;
