@@ -74,6 +74,14 @@ Hooks.once("init", () => {
   }
 });
 
+// gmHearing is a per-user setting, so Foundry shows it to everyone. Only the GM needs it.
+Hooks.on("renderSettingsConfig", (app, html) => {
+  if (game.user.isGM) return;
+  const root = html instanceof HTMLElement ? html : html?.[0];
+  const input = root?.querySelector(`[name="${MODULE_ID}.gmHearing"]`);
+  input?.closest(".form-group")?.remove();
+});
+
 Hooks.on("canvasReady", () => sync());
 Hooks.on("canvasTearDown", () => {
   onTearDown();
