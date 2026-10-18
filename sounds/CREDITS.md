@@ -28,9 +28,9 @@ no seam. Nothing else was changed.
 | `drone-low.ogg` | `sfx100v2_loop_ambient_04.ogg` from [100 CC0 SFX #2](https://opengameart.org/content/100-cc0-sfx-2) | rubberduck | CC0 |
 | `rain-pattering.ogg` | `loop_rain.ogg` from [40 CC0 water / splash / slime SFX](https://opengameart.org/content/cc0-audio-uploader-rubberduck) | rubberduck | CC0 |
 | `bubbles.ogg` | `loop_bubbles_02.ogg` from the same pack | rubberduck | CC0 |
-| `birdsong.ogg` | [Birds](https://freesound.org/people/kvgarlic/sounds/156826/), as edited for [Blanket](https://github.com/rafaelmardojai/blanket) | kvgarlic (edit: Porrumentzio) | CC0 |
-| `stream.ogg` | [Stream](https://freesound.org/people/gluckose/sounds/333987/), via Blanket | gluckose | CC0 |
-| `wind.ogg` | [Wind](https://freesound.org/people/felix.blume/sounds/217506/), as edited for Blanket | felix.blume (edit: Porrumentzio) | CC0 |
+| `birdsong.ogg` | [WoodThrushinMorningShawneeForestMay272012.wav](https://freesound.org/people/kvgarlic/sounds/156826/), as edited for [Blanket](https://github.com/rafaelmardojai/blanket) | kvgarlic (edit: Porrumentzio) | CC0 |
+| `stream.ogg` | [stream2.wav](https://freesound.org/people/gluckose/sounds/333987/), via Blanket | gluckose | CC0 |
+| `wind.ogg` | [Wind blowing in a field in Texas, USA](https://freesound.org/people/felix.blume/sounds/217506/), as edited for Blanket | felix.blume (edit: Porrumentzio) | CC0 |
 | `hearth.ogg` | [Fireplace](https://soundbible.com/1543-Fireplace.html), via Blanket | ezwa | Public domain |
 | `night-crickets.ogg` | [Crickets Chirping At Night](https://soundbible.com/2083-Crickets-Chirping-At-Night.html), via Blanket | Lisa Redfern | Public domain |
 
@@ -44,6 +44,6 @@ no seam. Nothing else was changed.
   [rafaelmardojai/blanket](https://github.com/rafaelmardojai/blanket) (commit `775f2a7`); their
   sources and licences are those in Blanket's `SOUNDS_LICENSING.md`. Blanket's other sounds (rain,
   storm, waves, city, train) are CC BY and are **not** used here.
-- **Check before a release:** the five Blanket recordings' licences come from Blanket's list; they
-  could not be checked on Freesound and SoundBible themselves when they were added (those sites were
-  out of reach). Open the five source pages above and confirm the licence shown there.
+- The five Blanket recordings' licences were checked on their source pages on 2026-10-18: the
+  three Freesound sounds are marked CC0 there, and the two SoundBible sounds Public Domain, with the
+  authors named above.
