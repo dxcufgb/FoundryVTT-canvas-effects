@@ -94,6 +94,7 @@
       "Opacity": "Opacity",
       "Density": "Density",
       "Direction": "Wind direction",
+      "SunlightDirectionHint": "The way the light travels (0° east, 90° south). Sunbeams and Sunset run along it, Dappled Light drifts along it, Light from Above ignores it.",
       "Pulse": "Pulse",
       "Rainbow": "Rainbow",
       "Wind": "Wind"

@@ -149,18 +149,21 @@ vec4 effect() {
   return vec4(clamp(c, 0.0, 1.0), 1.0) * uAlpha;
 }`,
   // uP: ray scale, warm wash, strength, mode (0 rays, 1 dappled, 2 a column from above)
+  // uWind.xy: the layer's direction, the way the light travels (rays run along it, dapples drift along it)
   sunlight: `
 vec4 effect() {
   vec2 p = vWorld / uGrid; float t = uTime;
   float m;
+  vec2 d = normalize(uWind.xy + vec2(1e-6, 0.0));   // the way the light travels (layer direction)
   if (uP.w < 0.5) {
-    float s = dot(p, vec2(-0.7071, 0.7071));
-    float along = dot(p, vec2(0.7071, 0.7071));
+    vec2 n = vec2(-d.y, d.x);
+    float s = dot(p, n);                              // across the beams
+    float along = dot(p, d);                          // along the beams
     m = pow(fbm(vec2(s * uP.x, t * 0.05)), 2.2) * 2.4;
     m *= 0.7 + 0.3 * noise(vec2(along * 0.15, t * 0.1));
   } else if (uP.w < 1.5) {
     vec2 sway = vec2(sin(t * 0.6), cos(t * 0.45)) * 0.3;
-    float n = fbm(p * uP.x + sway + t * 0.03);
+    float n = fbm(p * uP.x + sway - d * t * 0.03);  // the dapples drift along d
     m = smoothstep(0.5, 0.72, n) * 1.4;
   } else {
     vec2 q = vLocal - 0.5;
