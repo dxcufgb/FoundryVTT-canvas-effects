@@ -17,7 +17,7 @@ import { setOverride, effectImages, showLocal, shownAreas, editableArea, sceneBa
 import { AreaMesh } from "./area-mesh.js";
 import { areaBounds } from "./geometry.js";
 import { exportEffect, importEffect } from "./transfer.js";
-import { SOUNDS, CUSTOM, soundOptions, isStrikeSound, withStandardSound, standardSoundsOn } from "./sounds.js";
+import { SOUNDS, CUSTOM, RANGE, soundOptions, isStrikeSound, withStandardSound, standardSoundsOn } from "./sounds.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -223,6 +223,9 @@ export class CanvasEffectConfig extends HandlebarsApplicationMixin(ApplicationV2
       soundSrc: layer.soundSrc ?? "",
       soundVolume: layer.soundVolume,
       soundVolumeText: FORMAT.pct(layer.soundVolume),
+      soundRange: layer.soundRange,
+      soundRangeMin: RANGE.min, soundRangeMax: RANGE.max, soundRangeStep: RANGE.step,
+      soundRangeText: game.i18n.format("DXCFX.Palette.Squares", { n: layer.soundRange }),
       soundHint: isStrikeSound(layer.effect) ? "DXCFX.App.ThunderHint" : "DXCFX.App.SoundHint",
 
       presets: saved.map(p => ({ id: p.id, name: p.name, selected: p.id === this.presetId })),
@@ -284,6 +287,13 @@ export class CanvasEffectConfig extends HandlebarsApplicationMixin(ApplicationV2
       layer().soundVolume = v;
       const out = html.querySelector("output[data-for=soundVolume]");
       if (out) out.textContent = FORMAT.pct(v);
+      this.#changed();
+    });
+    html.querySelector("input[name=soundRange]")?.addEventListener("input", ev => {
+      const v = Number(ev.currentTarget.value);
+      layer().soundRange = v;
+      const out = html.querySelector("output[data-for=soundRange]");
+      if (out) out.textContent = game.i18n.format("DXCFX.Palette.Squares", { n: v });
       this.#changed();
     });
     html.querySelector("select[name=fit]")?.addEventListener("change", ev => {
@@ -539,7 +549,7 @@ export class CanvasEffectConfig extends HandlebarsApplicationMixin(ApplicationV2
     for (const k of Object.keys(EFFECTS[id].defaults ?? {})) if (!shown.includes(k)) delete keep[k];
     const layer = normalizeLayer({ ...keep, effect: id });
     // A file of your own stays; otherwise the new effect gets its own standard sound.
-    if (old.sound === CUSTOM) Object.assign(layer, { sound: CUSTOM, soundSrc: old.soundSrc, soundVolume: old.soundVolume });
+    if (old.sound === CUSTOM) Object.assign(layer, { sound: CUSTOM, soundSrc: old.soundSrc, soundVolume: old.soundVolume, soundRange: old.soundRange });
     else withStandardSound(layer, standardSoundsOn());
     this.cfg.layers[this.sel] = layer;
     this.#changed(true);
@@ -714,7 +724,7 @@ export class CanvasEffectConfig extends HandlebarsApplicationMixin(ApplicationV2
   static #onResetLayer() {
     const l = this.layer;
     if (!l) return;
-    this.cfg.layers[this.sel] = normalizeLayer({ effect: l.effect, style: l.style, src: l.src, fit: l.fit, sound: l.sound, soundSrc: l.soundSrc, soundVolume: l.soundVolume });
+    this.cfg.layers[this.sel] = normalizeLayer({ effect: l.effect, style: l.style, src: l.src, fit: l.fit, sound: l.sound, soundSrc: l.soundSrc, soundVolume: l.soundVolume, soundRange: l.soundRange });
     this.#changed(true);
   }
 }

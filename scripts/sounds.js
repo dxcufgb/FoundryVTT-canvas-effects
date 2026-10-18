@@ -2,18 +2,23 @@
  * Dxcufgb's canvas effects - the sounds effects can make.
  *
  * A layer can make a sound: one of the built-in sounds offered for its effect, a sound file of your
- * own, or none. Most are loops that play while the area is on the map, louder the closer the area
- * is to what you are looking at, and louder the stronger the layer (its opacity and density).
- * Lightning plays thunder on each strike instead (see LightningEffect in effects-ambience.js).
- * Everything plays on the Ambient channel, so Foundry's Ambient volume slider applies.
+ * own, or none. Most are loops that play while the area is on the map, louder the stronger the layer
+ * (its opacity and density). Lightning plays thunder on each strike instead (see LightningEffect in
+ * effects-ambience.js). Everything plays on the Ambient channel, so Foundry's Ambient volume slider applies.
+ *
+ * Who hears it, like Foundry's own ambient sounds: the tokens you control, or (a player with none
+ * selected) the tokens you own. Full volume inside the area, fading out over the layer's range beyond
+ * it; a wall that blocks sound between token and area muffles it (quieter, low-passed). With no such
+ * token, or for a GM who chose to hear from the camera, the sound follows what you look at instead.
  *
  * The built-in sounds are CC0 or public domain; where each comes from is in sounds/CREDITS.md.
  *
- * Layer fields: sound ("" none, a SOUNDS id, or CUSTOM), soundSrc (your own file), soundVolume (0..1).
+ * Layer fields: sound ("" none, a SOUNDS id, or CUSTOM), soundSrc (your own file), soundVolume (0..1),
+ * soundRange (grid squares beyond the area it is heard).
  */
 
 import { MODULE_ID } from "./constants.js";
-import { areaBounds } from "./geometry.js";
+import { areaBounds, areaContains } from "./geometry.js";
 
 /** A sound file of your own. */
 export const CUSTOM = "custom";
@@ -80,10 +85,11 @@ export const SOUNDS = {
 
 /**
  * The sounds offered for each effect, best first. `standard` is the one a new layer gets (when the
- * "Standard sounds" setting is on), at `volume`. Effects not listed only offer a file of your own.
+ * "Standard sounds" setting is on), at `volume`, heard `range` squares beyond the area (default
+ * DEFAULT_RANGE). Effects not listed only offer a file of your own.
  */
 export const EFFECT_SOUNDS = {
-  lightning:  { options: ["thunder", "thunderclap"], standard: "thunder" },
+  lightning:  { options: ["thunder", "thunderclap"], standard: "thunder", range: 40 },
   rain:       { options: ["rain-steady", "rain-patter", "rain-heavy", "rain-thunder", "rain-storm", "rain-roof", "rain-forest"], standard: "rain-steady" },
   snow:       { options: ["wind", "wind-howl", "breeze", "ice-creak", "singing-ice", "wolf"], standard: "wind", volume: 0.4 },
   sandstorm:  { options: ["wind", "wind-howl", "desert-night"], standard: "wind" },
@@ -113,6 +119,12 @@ export const EFFECT_SOUNDS = {
 };
 
 const DEFAULT_VOLUME = 0.8;
+export const DEFAULT_RANGE = 8;
+export const RANGE = { min: 1, max: 60, step: 1 };
+const MUFFLED = 0.5;       // how loud a sound behind a wall is
+const LOWPASS = 5;         // and how muffled (BiquadFilterEffect intensity, as Foundry's ambient sounds)
+
+const defaultRange = effect => EFFECT_SOUNDS[effect]?.range ?? DEFAULT_RANGE;
 
 /** The built-in sounds a layer of this effect can choose. */
 export function soundOptions(effect) {
@@ -133,7 +145,10 @@ export function normalizeSound(l, effect) {
   if (sound !== CUSTOM && !soundOptions(effect).includes(sound)) sound = "";
   const v = Number(l.soundVolume);
   const soundVolume = Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : (EFFECT_SOUNDS[effect]?.volume ?? DEFAULT_VOLUME);
-  return { sound, soundSrc, soundVolume };
+  const r = Number(l.soundRange);
+  const soundRange = Number.isFinite(r) && l.soundRange !== null && l.soundRange !== ""
+    ? Math.min(RANGE.max, Math.max(RANGE.min, Math.round(r))) : defaultRange(effect);
+  return { sound, soundSrc, soundVolume, soundRange };
 }
 
 /** Give a new layer its effect's standard sound (or none), at the standard volume. Returns the layer. */
@@ -141,7 +156,102 @@ export function withStandardSound(layer, on = true) {
   const s = EFFECT_SOUNDS[layer.effect];
   layer.sound = on && s?.standard && SOUNDS[s.standard] ? s.standard : "";
   layer.soundVolume = s?.volume ?? DEFAULT_VOLUME;
+  layer.soundRange = defaultRange(layer.effect);
   return layer;
+}
+
+/** Where this user hears from: the tokens (null = the camera instead). */
+function listeners() {
+  try {
+    if (game.user.isGM && game.settings.get(MODULE_ID, "gmHearing") === "camera") return null;
+    const pts = canvas.sounds?.getListenerPositions?.() ?? [];
+    return pts.length ? pts : null;
+  } catch (_) { return null; }
+}
+
+/* -------------------------------------------- */
+/*  Distance and walls                          */
+/* -------------------------------------------- */
+
+/** The point of segment a-b nearest to p, and its distance. */
+function onSegment(px, py, ax, ay, bx, by) {
+  const dx = bx - ax, dy = by - ay, len2 = dx * dx + dy * dy;
+  const t = len2 ? Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / len2)) : 0;
+  const x = ax + t * dx, y = ay + t * dy;
+  return { x, y, d: Math.hypot(px - x, py - y) };
+}
+
+/** The point of one painted shape nearest to p: {x, y, d} (d = 0 inside). */
+function nearestOnShape(s, p) {
+  if (s.type === "rect") {
+    const x = Math.max(s.x, Math.min(s.x + s.width, p.x)), y = Math.max(s.y, Math.min(s.y + s.height, p.y));
+    return { x, y, d: Math.hypot(p.x - x, p.y - y) };
+  }
+  if (s.type === "ellipse") {
+    const a = s.width / 2, b = s.height / 2, cx = s.x + a, cy = s.y + b, dx = p.x - cx, dy = p.y - cy;
+    const k = Math.hypot(dx / a, dy / b);
+    if (k <= 1) return { x: p.x, y: p.y, d: 0 };
+    const x = cx + dx / k, y = cy + dy / k;          // ponytail: the radial point, not the exact nearest; close enough for loudness
+    return { x, y, d: Math.hypot(p.x - x, p.y - y) };
+  }
+  const pts = s.points;
+  if (s.type === "polygon" && new PIXI.Polygon(pts).contains(p.x, p.y)) return { x: p.x, y: p.y, d: 0 };
+  let best = { x: pts[0], y: pts[1], d: Math.hypot(p.x - pts[0], p.y - pts[1]) };
+  const n = pts.length / 2, closed = s.type === "polygon";
+  for (let i = 0; i < (closed ? n : n - 1); i++) {
+    const j = (i + 1) % n;
+    const q = onSegment(p.x, p.y, pts[2 * i], pts[2 * i + 1], pts[2 * j], pts[2 * j + 1]);
+    if (q.d < best.d) best = q;
+  }
+  if (s.type === "stroke") {
+    const r = s.width / 2;
+    if (best.d <= r) return { x: p.x, y: p.y, d: 0 };
+    const f = r / best.d;                            // step from the line towards p, to the stroke's edge
+    return { x: best.x + (p.x - best.x) * f, y: best.y + (p.y - best.y) * f, d: best.d - r };
+  }
+  return best;
+}
+
+/** The painted point of an area nearest to p. ponytail: erased parts still count; fine for loudness. */
+function nearestOnArea(shapes, p) {
+  let best = null;
+  for (const s of shapes) {
+    if (s.erase) continue;
+    const q = nearestOnShape(s, p);
+    if (!best || q.d < best.d) best = q;
+    if (best.d === 0) break;
+  }
+  return best;
+}
+
+/** Whether a sound-blocking wall (or closed door) lies between two points. */
+function walled(a, b) {
+  try {
+    return !!CONFIG.Canvas.polygonBackends.sound.testCollision(a, b, { type: "sound", mode: "any" });
+  } catch (_) { return false; }
+}
+
+/**
+ * How an area's sound reaches these listeners: {volume 0..1, muffled}. The best-placed listener wins.
+ * Muffled when a wall stands between the listener and both the area's nearest point and its middle.
+ */
+function hearing(where, list) {
+  const reach = Math.max(1, where.range ?? DEFAULT_RANGE) * (canvas.grid?.size ?? 100);
+  const b = where.bounds;
+  const mid = { x: b.x + b.width / 2, y: b.y + b.height / 2 };
+  const midPainted = areaContains(where.shapes, mid.x, mid.y);
+  let best = { volume: 0, muffled: false };
+  for (const l of list) {
+    const q = nearestOnArea(where.shapes, l);
+    if (!q) continue;
+    if (q.d === 0) return { volume: 1, muffled: false };
+    const t = Math.max(0, 1 - q.d / reach);
+    if (!t) continue;
+    const muffled = walled(l, q) && (!midPainted || walled(l, mid));
+    const volume = t * t;
+    if (volume * (muffled ? MUFFLED : 1) > best.volume * (best.muffled ? MUFFLED : 1)) best = { volume, muffled };
+  }
+  return best;
 }
 
 /** Whether new layers get their standard sound (world setting). */
@@ -167,8 +277,8 @@ function strength(layer) {
 /*  Playback                                    */
 /* -------------------------------------------- */
 
-const loops = new Map();   // src -> {sound: Promise<Sound|null>, volume, target}
-let sources = [];          // [{src, level, bounds}] from the shown areas
+const loops = new Map();   // src -> {sound: Promise<Sound|null>, target, muffled, filter}
+let sources = [];          // [{src, level, bounds, shapes, range}] from the shown areas
 let lastTick = -Infinity;
 
 /** Play the loops of these areas ([{area, faded}]); stop the ones no area needs any more. */
@@ -181,11 +291,11 @@ export function syncSounds(list) {
       const loop = loopOf(layer);
       if (!loop) continue;
       const level = loop.gain * layer.soundVolume * strength(layer) * (faded ? 0.5 : 1);
-      if (level > 0.001) sources.push({ src: loop.src, level, bounds });
+      if (level > 0.001) sources.push({ src: loop.src, level, bounds, shapes: area.shapes, range: layer.soundRange });
     }
   }
   const wanted = new Set(sources.map(s => s.src));
-  for (const src of wanted) if (!loops.has(src)) loops.set(src, { sound: start(src), volume: 0, target: 0 });
+  for (const src of wanted) if (!loops.has(src)) loops.set(src, { sound: start(src), target: 0, muffled: false, filter: null });
   for (const [src, l] of loops) if (!wanted.has(src)) stop(src, l);
   lastTick = -Infinity;
   tickSounds();
@@ -229,33 +339,65 @@ function nearness(b) {
   return t * t * Math.min(1, 0.55 + 0.45 * zoom);
 }
 
-/** Every few frames: follow the camera. Several areas with the same sound play it once, louder. */
+/** Low-pass a playing loop, or stop doing so. */
+function muffle(sound, holder, on) {
+  if (on && !holder.filter) holder.filter = new foundry.audio.BiquadFilterEffect(sound.context, { type: "lowpass", intensity: LOWPASS });
+  sound.applyEffects(on ? [holder.filter] : []);
+}
+
+/**
+ * Every few frames: follow the listening tokens (or the camera). Several areas with the same sound play
+ * it once, louder; it is muffled when what reaches you comes mostly through walls.
+ */
 export function tickSounds() {
   const now = performance.now();
   if (now - lastTick < 250) return;
   lastTick = now;
-  const quiet = new Map();
+  const ears = sources.length ? listeners() : null;
+  const clear = new Map(), dull = new Map();     // src -> how much of it does NOT reach you (1 - v)
   for (const s of sources) {
-    const v = Math.min(1, s.level * nearness(s.bounds));
-    quiet.set(s.src, (quiet.get(s.src) ?? 1) * (1 - v));
+    const h = ears ? hearing(s, ears) : { volume: nearness(s.bounds), muffled: false };
+    const v = Math.min(1, s.level * h.volume * (h.muffled ? MUFFLED : 1));
+    const m = h.muffled ? dull : clear;
+    m.set(s.src, (m.get(s.src) ?? 1) * (1 - v));
   }
   for (const [src, l] of loops) {
-    const target = 1 - (quiet.get(src) ?? 1);
-    if (Math.abs(target - l.target) < 0.01) continue;
+    const c = 1 - (clear.get(src) ?? 1), d = 1 - (dull.get(src) ?? 1);
+    const target = 1 - (1 - c) * (1 - d);
+    const muffled = d > c;
+    if (Math.abs(target - l.target) < 0.01 && muffled === l.muffled) continue;
+    const change = muffled !== l.muffled;
     l.target = target;
+    l.muffled = muffled;
     l.sound.then(sound => {
-      if (sound && loops.get(src) === l) sound.fade(target, { duration: 300 });
+      if (!sound || loops.get(src) !== l) return;
+      if (change) muffle(sound, l, muffled);
+      sound.fade(target, { duration: 300 });
     });
   }
 }
 
-/** Play a sound once (thunder), after a delay. */
-export function playOnce(src, delay = 0, volume = 1) {
+/**
+ * Play a sound once (thunder), after a delay. With `where` ({shapes, range}: the area it comes from)
+ * it is heard like the loops: by distance from your tokens, muffled behind walls.
+ */
+export function playOnce(src, delay = 0, volume = 1, where = null) {
   if (!src) return;
   setTimeout(async () => {
     try {
+      let muffled = false;
+      const ears = where?.shapes?.length ? listeners() : null;
+      if (ears) {
+        const h = hearing({ ...where, bounds: areaBounds(where.shapes) }, ears);
+        if (!h.volume) return;
+        volume *= h.volume * (h.muffled ? MUFFLED : 1);
+        muffled = h.muffled;
+      }
       await game.audio.unlock;
-      await game.audio.play(src, { context: game.audio.environment, volume, loop: false });
+      const sound = game.audio.create({ src, context: game.audio.environment, singleton: false });
+      await sound.load();
+      if (muffled) sound.effects.push(new foundry.audio.BiquadFilterEffect(sound.context, { type: "lowpass", intensity: LOWPASS }));
+      await sound.play({ volume, loop: false });
     } catch (err) {
       console.warn(`${MODULE_ID} | could not play ${src}`, err);
     }

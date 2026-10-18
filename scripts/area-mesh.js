@@ -235,7 +235,7 @@ export class AreaMesh extends PIXI.Container {
       shapes,
       seed,
       clock: () => Date.now(),
-      playSound: this.playSound,
+      playSound: this.playSound && ((src, delay, volume, layer) => this.playSound(src, delay, volume, layer, this.area)),
       backdrop: this.backdrop,
       grid: this.grid,
       quality: this.quality,

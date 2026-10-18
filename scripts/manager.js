@@ -246,7 +246,7 @@ function tick() {
   tickSounds();
 }
 
-/** Thunder from effects: played on this computer only, on the Ambient channel. */
-function effectSound(src, delay = 0, volume = 1) {
-  if (src && enabled()) playOnce(src, delay, volume);
+/** Thunder from effects: played on this computer only, on the Ambient channel, heard from where the area is. */
+function effectSound(src, delay = 0, volume = 1, layer = null, area = null) {
+  if (src && enabled()) playOnce(src, delay, volume, area ? { shapes: area.shapes, range: layer?.soundRange } : null);
 }

@@ -143,6 +143,9 @@
         <label>{{localize "DXCFX.App.SoundVolume"}}</label>
         <input type="range" name="soundVolume" min="0" max="1" step="0.01" value="{{soundVolume}}">
         <output data-for="soundVolume">{{soundVolumeText}}</output>
+        <label data-tooltip="{{localize 'DXCFX.App.SoundRangeHint'}}">{{localize "DXCFX.App.SoundRange"}}</label>
+        <input type="range" name="soundRange" min="{{soundRangeMin}}" max="{{soundRangeMax}}" step="{{soundRangeStep}}" value="{{soundRange}}">
+        <output data-for="soundRange">{{soundRangeText}}</output>
         {{/if}}
       </div>
       {{#if soundCustom}}

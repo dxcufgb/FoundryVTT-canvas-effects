@@ -3,7 +3,7 @@
  *
  * An area's effect is a stack of layers, drawn bottom to top:
  *   {layers: [{effect, style, alpha, speed, scale, density, direction, wind, color, blend, pulse, rainbow,
- *              src, fit (your image), light (casts Foundry light), sound, soundSrc, soundVolume (see sounds.js),
+ *              src, fit (your image), light (casts Foundry light), sound, soundSrc, soundVolume, soundRange (see sounds.js),
  *              aboveTokens (drawn over the tokens; not for effects that redraw the map)}, ...]}
  *
  * The Wind direction slider (`direction`, in degrees) and the Wind slider (`wind`) should visibly
@@ -22,7 +22,7 @@
  *      ctx.shapes      the area's shapes (see geometry.js), e.g. to place things where the user clicked
  *      ctx.seed        a number from the area's id (the same on every computer)
  *      ctx.clock()     milliseconds, the same on every computer (roughly): for synchronised events
- *      ctx.playSound(src, delayMs, volume)   only on the canvas, not in the preview
+ *      ctx.playSound(src, delayMs, volume, layer)   only on the canvas, not in the preview; heard from the area
  *      ctx.textures    {custom: {src: PIXI.Texture}} images of your own
  *    The area masks the effect, so you can simply cover ctx.bounds.
  *    Register sprites that should take the layer's colour with this.tintable(sprite); the colour,

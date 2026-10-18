@@ -80,6 +80,12 @@
         "Name": "Show canvas effects",
         "Hint": "Turn the effects off on this computer only, for example if the canvas is slow."
       },
+      "GmHearing": {
+        "Name": "GM: hear effect sounds from",
+        "Hint": "Players always hear effect sounds from their tokens. As GM you can do the same with the tokens you select (with none selected you hear from the camera), or always hear from the camera, so the whole map you are looking at plays.",
+        "Token": "The selected tokens",
+        "Camera": "The camera"
+      },
       "StandardSounds": {
         "Name": "Standard sounds for new effects",
         "Hint": "A new effect layer gets the sound that suits it (rain patters, fire crackles, lightning thunders). Turn this off to start every layer silent; you can still pick a sound for each layer. Layers you already made keep theirs."
@@ -232,8 +238,10 @@
       "SoundChoice": "Sound",
       "SoundVolume": "Volume",
       "SoundPath": "Sound file",
-      "SoundHint": "Plays on a loop while the area is on the map, for every player, on the Ambient channel: louder the closer it is to what you look at and the stronger the layer (opacity, density).",
-      "ThunderHint": "Each strike sounds as strong as it looks: a bright strike with a bolt cracks right away, a weaker flash rumbles a moment later, a faint one rolls in from far off, quietly. Another sound gets the same delay and volume.",
+      "SoundHint": "Plays on a loop while the area is on the map, on the Ambient channel: full inside the area, fading out over the range beyond it, from your selected token (a player with none selected: the tokens they own). A wall that blocks sound muffles it. Louder the stronger the layer (opacity, density). With no token to hear from, it follows what you look at.",
+      "SoundRange": "Heard from",
+      "SoundRangeHint": "How far beyond the area a token still hears it, in grid squares. It fades out over that distance.",
+      "ThunderHint": "Each strike sounds as strong as it looks: a bright strike with a bolt cracks right away, a weaker flash rumbles a moment later, a faint one rolls in from far off, quietly. Another sound gets the same delay and volume. Heard from your token like the other sounds: fainter with distance beyond the area, muffled behind walls.",
       "Light": "Casts light",
       "LightHint": "Lights up the map and the tokens in a dark scene, like a light source (blocked by walls).",
       "AboveTokens": "Above the tokens",

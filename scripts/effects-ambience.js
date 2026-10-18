@@ -622,7 +622,7 @@ export class LightningEffect extends AreaEffect {
     const src = l.sound === CUSTOM ? l.soundSrc
       : def?.set === "thunder" ? def.dir + `${kind}-${variant}.ogg`
       : def?.src;
-    if (src) this.ctx.playSound(src, delay, volume);
+    if (src) this.ctx.playSound(src, delay, volume, l);
   }
 
   lights() {
