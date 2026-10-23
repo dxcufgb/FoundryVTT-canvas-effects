@@ -18,7 +18,7 @@
  */
 
 import { MODULE_ID } from "./constants.js";
-import { areaBounds, areaContains } from "./geometry.js";
+import { areaBounds, areaContains, shapeContains } from "./geometry.js";
 
 /** A sound file of your own. */
 export const CUSTOM = "custom";
@@ -212,8 +212,8 @@ function nearestOnShape(s, p) {
   return best;
 }
 
-/** The painted point of an area nearest to p. ponytail: erased parts still count; fine for loudness. */
-function nearestOnArea(shapes, p) {
+/** The point of an area's paint nearest to p, ignoring erasers and exclusion zones. */
+function nearestOnPaint(shapes, p) {
   let best = null;
   for (const s of shapes) {
     if (s.erase) continue;
@@ -224,11 +224,94 @@ function nearestOnArea(shapes, p) {
   return best;
 }
 
+/** Whether p is painted: in the area (erasers taken into account) and in none of the zones cut out of it. */
+function painted(where, p) {
+  return areaContains(where.shapes, p.x, p.y) && !where.cuts?.some(c => areaContains(c, p.x, p.y));
+}
+
+/** The holes at p: erasers of the area and shapes of the exclusion zones above it. */
+function holesAt(where, p) {
+  const out = where.shapes.filter(s => s.erase && shapeContains(s, p.x, p.y));
+  for (const c of where.cuts ?? []) for (const s of c) if (!s.erase && shapeContains(s, p.x, p.y)) out.push(s);
+  return out;
+}
+
+/** From p inside shape s, the nearest point of its edge (roughly, for ellipses), `out` pixels beyond it. */
+function exitShape(s, p, out) {
+  if (s.type === "rect") {
+    const sides = [
+      [p.x - s.x, s.x - out, p.y], [s.x + s.width - p.x, s.x + s.width + out, p.y],
+      [p.y - s.y, p.x, s.y - out], [s.y + s.height - p.y, p.x, s.y + s.height + out]
+    ];
+    const [, x, y] = sides.reduce((a, b) => (b[0] < a[0] ? b : a));
+    return { x, y };
+  }
+  if (s.type === "ellipse") {
+    const a = s.width / 2, b = s.height / 2, cx = s.x + a, cy = s.y + b;
+    let dx = p.x - cx, dy = p.y - cy;
+    if (!dx && !dy) dx = 1;
+    const k = Math.hypot(dx / a, dy / b), len = Math.hypot(dx, dy);
+    return { x: cx + dx / k + (dx / len) * out, y: cy + dy / k + (dy / len) * out };
+  }
+  const pts = s.points, n = pts.length / 2;
+  let best = { x: pts[0], y: pts[1], d: Math.hypot(p.x - pts[0], p.y - pts[1]) };
+  const closed = s.type === "polygon";
+  for (let i = 0; i < (closed ? n : n - 1); i++) {
+    const j = (i + 1) % n;
+    const q = onSegment(p.x, p.y, pts[2 * i], pts[2 * i + 1], pts[2 * j], pts[2 * j + 1]);
+    if (q.d < best.d) best = q;
+  }
+  if (s.type === "stroke") {
+    // From the line through p to the stroke's edge.
+    let dx = p.x - best.x, dy = p.y - best.y, len = best.d;
+    if (!len) { dx = 1; dy = 0; len = 1; }
+    const r = s.width / 2 + out;
+    return { x: best.x + (dx / len) * r, y: best.y + (dy / len) * r };
+  }
+  // Polygon: to its nearest edge and on beyond it.
+  if (!best.d) return { x: best.x, y: best.y };
+  return { x: best.x + ((best.x - p.x) / best.d) * out, y: best.y + ((best.y - p.y) / best.d) * out };
+}
+
+/**
+ * The painted point of an area nearest to p: {x, y, d} (d = 0 when p itself is painted), or null.
+ * A token standing in a hole (an erased building, an exclusion zone) is outside the area: its nearest
+ * painted point is at the hole's edge. ponytail: steps out of the nearest hole edge, not an exact search.
+ */
+function nearestOnArea(where, p) {
+  const q = nearestOnPaint(where.shapes, p);
+  if (!q) return null;
+  if (!where.cuts?.length && !where.shapes.some(s => s.erase)) return q;
+  let pt = q.d === 0 ? { x: p.x, y: p.y } : { x: q.x, y: q.y };
+  for (let i = 0; i < 6 && !painted(where, pt); i++) {
+    let next = null;
+    for (const s of holesAt(where, pt)) {
+      const e = exitShape(s, pt, 2);
+      const d = Math.hypot(e.x - pt.x, e.y - pt.y);
+      if (!next || d < next.d) next = { x: e.x, y: e.y, d };
+    }
+    if (!next) break;
+    pt = next;
+  }
+  const d = Math.hypot(p.x - pt.x, p.y - pt.y);
+  return { x: pt.x, y: pt.y, d: d < 1e-6 ? 0 : d };
+}
+
 /** Whether a sound-blocking wall (or closed door) lies between two points. */
+let wallWarned = false;
 function walled(a, b) {
   try {
     return !!CONFIG.Canvas.polygonBackends.sound.testCollision(a, b, { type: "sound", mode: "any" });
-  } catch (_) { return false; }
+  } catch (err) {
+    if (!wallWarned) { wallWarned = true; console.warn(`${MODULE_ID} | could not test walls for sound`, err); }
+    return false;
+  }
+}
+
+/** Point b moved `by` pixels further from a, so a wall right at b's edge still lies between them. */
+function beyond(a, b, by) {
+  const d = Math.hypot(b.x - a.x, b.y - a.y);
+  return d ? { x: b.x + ((b.x - a.x) / d) * by, y: b.y + ((b.y - a.y) / d) * by } : b;
 }
 
 /**
@@ -236,18 +319,20 @@ function walled(a, b) {
  * Muffled when a wall stands between the listener and both the area's nearest point and its middle.
  */
 function hearing(where, list) {
-  const reach = Math.max(1, where.range ?? DEFAULT_RANGE) * (canvas.grid?.size ?? 100);
+  const size = canvas.grid?.size ?? 100;
+  const reach = Math.max(1, where.range ?? DEFAULT_RANGE) * size;
   const b = where.bounds;
   const mid = { x: b.x + b.width / 2, y: b.y + b.height / 2 };
-  const midPainted = areaContains(where.shapes, mid.x, mid.y);
+  const midPainted = painted(where, mid);
   let best = { volume: 0, muffled: false };
   for (const l of list) {
-    const q = nearestOnArea(where.shapes, l);
+    const q = nearestOnArea(where, l);
     if (!q) continue;
     if (q.d === 0) return { volume: 1, muffled: false };
     const t = Math.max(0, 1 - q.d / reach);
     if (!t) continue;
-    const muffled = walled(l, q) && (!midPainted || walled(l, mid));
+    // Test a little into the area: paint that ends exactly on a wall is still behind it.
+    const muffled = walled(l, beyond(l, q, size / 5)) && (!midPainted || walled(l, mid));
     const volume = t * t;
     if (volume * (muffled ? MUFFLED : 1) > best.volume * (best.muffled ? MUFFLED : 1)) best = { volume, muffled };
   }
@@ -278,20 +363,23 @@ function strength(layer) {
 /* -------------------------------------------- */
 
 const loops = new Map();   // src -> {sound: Promise<Sound|null>, target, muffled, filter}
-let sources = [];          // [{src, level, bounds, shapes, range}] from the shown areas
+let sources = [];          // [{src, level, bounds, shapes, cuts, range}] from the shown areas
 let lastTick = -Infinity;
 
-/** Play the loops of these areas ([{area, faded}]); stop the ones no area needs any more. */
+/**
+ * Play the loops of these areas ([{area, faded, cuts}], cuts: the shape lists of the exclusion zones
+ * over the area); stop the ones no area needs any more.
+ */
 export function syncSounds(list) {
   sources = [];
-  for (const { area, faded } of list) {
+  for (const { area, faded, cuts = [] } of list) {
     const bounds = areaBounds(area.shapes);
     if (!bounds) continue;
     for (const layer of area.effect?.layers ?? []) {
       const loop = loopOf(layer);
       if (!loop) continue;
       const level = loop.gain * layer.soundVolume * strength(layer) * (faded ? 0.5 : 1);
-      if (level > 0.001) sources.push({ src: loop.src, level, bounds, shapes: area.shapes, range: layer.soundRange });
+      if (level > 0.001) sources.push({ src: loop.src, level, bounds, shapes: area.shapes, cuts, range: layer.soundRange });
     }
   }
   const wanted = new Set(sources.map(s => s.src));
@@ -378,7 +466,7 @@ export function tickSounds() {
 }
 
 /**
- * Play a sound once (thunder), after a delay. With `where` ({shapes, range}: the area it comes from)
+ * Play a sound once (thunder), after a delay. With `where` ({shapes, cuts, range}: the area it comes from)
  * it is heard like the loops: by distance from your tokens, muffled behind walls.
  */
 export function playOnce(src, delay = 0, volume = 1, where = null) {

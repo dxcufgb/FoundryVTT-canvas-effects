@@ -170,7 +170,7 @@ async function syncNow() {
   const lit = enabled() ? areas.filter(a => a.visible).map(area => ({ area, mesh: meshFor(area.id) })).filter(x => x.mesh?.bounds) : [];
   syncLights(lit);
   // Sounds: from what is shown (the GM also hears hidden areas, softer, as they see them faded).
-  syncSounds(enabled() ? areas.filter(a => a.shapes.length).map(area => ({ area, faded: !area.visible })) : []);
+  syncSounds(enabled() ? areas.filter(a => a.shapes.length).map(area => ({ area, faded: !area.visible, cuts: soundCuts(area) })) : []);
   attachGlows();
   startTicker();
 }
@@ -248,5 +248,10 @@ function tick() {
 
 /** Thunder from effects: played on this computer only, on the Ambient channel, heard from where the area is. */
 function effectSound(src, delay = 0, volume = 1, layer = null, area = null) {
-  if (src && enabled()) playOnce(src, delay, volume, area ? { shapes: area.shapes, range: layer?.soundRange } : null);
+  if (src && enabled()) playOnce(src, delay, volume, area ? { shapes: area.shapes, cuts: soundCuts(area), range: layer?.soundRange } : null);
+}
+
+/** The shapes of the exclusion zones cut out of an area, so its sound is not heard inside them as inside the area. */
+function soundCuts(area) {
+  return (meshFor(area.id)?.exclusions ?? []).map(e => e.shapes);
 }
