@@ -129,17 +129,17 @@ api.areas();                          // the areas of the viewed scene, bottom f
 api.open(areaId);                     // GM: open the Canvas effect window for an area
 await api.saveArea(area);             // GM: add an area or replace the one with the same id -> the saved area, or null
 await api.deleteArea(areaId);         // GM: remove an area
-api.effects;                          // effects and their styles, by id
+api.effects;                          // effects and their styles, by id (a frozen copy)
 api.presets();                        // this user's saved effects: [{id, name, cfg}]
 await api.exportEffect(cfg, name);    // download cfg as one .canvas-effect.json file -> {file, data, missing}
 await api.importEffect(file);         // read such a file, upload its images to this world -> {name, cfg, uploaded, skipped}
 ```
 
 - `saveArea` and `deleteArea` take the scene as an optional last argument (default: the viewed scene). They do nothing for a player, or for a GM who can't update the scene; `open` shows a warning and returns `null` for them. `open` returns the window.
-- `saveArea` cleans the area up before saving it (unknown effects and styles fall back, at most 8 layers), so it needs only an `id` and its `shapes`. Layers saved this way have no sound unless you set `sound`.
+- `saveArea` cleans the area up before saving it (unknown effects and styles fall back, at most 8 layers), so it needs only an `id` and its `shapes`. A layer without a `sound` field gets its effect's standard sound, as when you paint a new area by hand, unless the *Standard sounds for new effects* setting is off. Set `sound` to choose one yourself; `sound: null` (or `""`) means no sound.
 - `importEffect` takes a `File`, the file's text or the parsed object, and also a bare `{layers: [...]}`. It throws on a file it can't read or one from a newer version of the module. Images are uploaded only when the user may upload files. It doesn't save anything: put `cfg` on an area as its `effect`.
 - `exportEffect` lists in `missing` the images it could not embed (they keep their address).
-- `api.effects[id]` has `label`, `icon`, `params` (the sliders it uses) and `styles` (`{styleId: {label, …}}`); the other fields are internal.
+- `api.effects` is a frozen copy: `api.effects[id]` = `{label, icon, params, styles}`, with `params` the sliders it uses and `styles` = `{styleId: {label}}`. Changing it changes nothing in the module.
 
 Paint rain over the whole scene, drawn above the tokens:
 
