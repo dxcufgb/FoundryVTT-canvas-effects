@@ -19,7 +19,7 @@ Paint areas and walls on the map and fill them with animated effects, all made f
 | Filters | Colour Wash, Colour Grade, Bloom, Underwater, Old Film, Glitch |
 | Surfaces | Lava Flow, Living Water, Heat Haze, Vortex, Your image |
 
-Every effect has several styles (135 in all). The painted areas are always see-through. They never block sight, light or movement; they only hold the effect. Effects are drawn above the map, tiles and drawings and below the tokens. Tick **Above the tokens** on a layer to draw that layer over the tokens instead, so rain, snow or clouds fall on everyone's heads.
+Every effect has several styles (139 in all). The painted areas are always see-through. They never block sight, light or movement; they only hold the effect. Effects are drawn above the map, tiles and drawings and below the tokens. Tick **Above the tokens** on a layer to draw that layer over the tokens instead, so rain, snow or clouds fall on everyone's heads.
 
 **Foundry VTT:** v13 · system agnostic
 
@@ -62,15 +62,15 @@ The **Canvas effect** window builds an area's effect in layers, drawn bottom to 
 
 Every change shows in the preview and on the map right away. Nothing is saved until **Apply**; closing the window or **Undo changes** puts the area back as it was.
 
-- **Casts light**: fire, candles, firelight and lightning add real Foundry light sources, so they light the map and the tokens in a dark scene (walls block them, lightning excepted).
-- **Above the tokens**: any layer except the filters and surfaces can be drawn over the tokens instead of under them, for rain, snow, clouds or lightning falling on everyone's heads. The other layers of the same effect stay under the tokens, so a fog layer can stay on the ground below the rain.
+- **Casts light**: fire, candles, light & glow, lava flow and lightning add real Foundry light sources, so they light the map and the tokens in a dark scene (walls block them, lightning excepted).
+- **Above the tokens**: any layer except the ones that redraw the map (see *Filters and surfaces* below) can be drawn over the tokens instead of under them, for rain, snow, clouds or lightning falling on everyone's heads. The other layers of the same effect stay under the tokens, so a fog layer can stay on the ground below the rain.
 - **Sounds**: every layer can make a sound, chosen under **Sound** in the effect window: one of the built-in sounds offered for its effect, a file of your own, or none, with its own volume. Sounds play on Foundry's **Ambient** channel and are heard from your token, like Foundry's own ambient sounds: from the tokens you have selected, or, for a player with none selected, the tokens they own. Inside the area a sound plays at full volume; beyond it, it fades out over the layer's **Heard from** range (in grid squares, 8 by default, 40 for lightning). A wall that blocks sound, or a closed door, between your token and the area muffles it: quieter and dull, not silent. A part cut out of the area (with the eraser or an exclusion zone) counts as outside it, so for rain outside a house, cut the house out: inside, the rain is heard muffled through its walls. Rain painted over the house is heard inside it at full volume. With no token to hear from, the sound follows what you are looking at instead (fading out about a screen away). Louder the stronger the layer (its opacity and density). Several areas with the same sound play it once, louder. The GM also hears hidden areas, softer.
 - **Thunder**: lightning plays thunder matched to each flash. Every strike has its own strength: a bright strike with a bolt cracks almost at once, loud; a medium flash rumbles a moment later; a faint flash rolls in from far off, quietly and late. The layer's opacity and the style's flash count too, so the Distant style mostly rumbles far away. A recorded thunderclap or a file of your own gets the same volume and delay. Strikes follow the clock, so every player sees the same one, and hears it from where their token stands: fainter further from the storm, muffled indoors.
 - **Examples** in the saved effects list: Fireplace, Firelight, Campfire, Candles, Ritual circle, Heavy rain, Thunderstorm. Paint the firebox for a fire, one brush dot per candle (a stroke is a row of candles), the whole map for rain.
 
 **Saved effects** are kept with your user and can be put on any area. **Export** saves an effect, with any images of your own, as one `.canvas-effect.json` file; **Import** reads it in any world (the images are uploaded into `worlds/<world>/dxcufgbs-canvas-effects/imported/`).
 
-**Filters and surfaces** (Colour Grade, Underwater, Old Film, Glitch, Lava Flow, Living Water, Heat Haze, Vortex, Bloom) redraw the scene's background image inside the painted area. They are drawn just above the map and below tiles, so they need a scene with a background image, and tiles stay on top of them.
+**Filters and surfaces** (Colour Grade, Underwater, Old Film, Glitch, Lava Flow, Living Water, Heat Haze, Vortex, Bloom) redraw the scene's background image inside the painted area, so they need a scene with a background image. They are drawn just above the map and below tiles, so tiles stay on top of them; Bloom is the exception and is drawn with the other effects, above tiles.
 
 **Sunlight** follows the layer's **Wind direction**, the way the light travels (0° east, 90° south, 180° west, −90° north): Sunbeams and Sunset run along it and Dappled Light drifts along it; Light from Above ignores it. A new Sunlight layer starts at 45° (light from the top left).
 
@@ -108,7 +108,7 @@ Every change shows in the preview and on the map right away. Nothing is saved un
 
 Every other effect can play a file of your own.
 
-**Glowing layers** (fire, candles, embers, fireflies, ghosts, stars, lava, sunlight, lightning) are also drawn into Foundry's lighting, so they stay bright in a dark scene.
+**Glowing layers** (fire, light & glow, candles, embers, fireflies, ghosts, stars, bloom, lava, sunlight, lightning) are also drawn into Foundry's lighting, so they stay bright in a dark scene.
 
 ## Settings
 
@@ -125,7 +125,53 @@ Areas are stored on the scene: `flags["dxcufgbs-canvas-effects"].areas`. New eff
 
 ```js
 const api = game.modules.get("dxcufgbs-canvas-effects").api;
-api.areas();                 // the areas of the viewed scene
-api.open(areaId);            // open the Canvas effect window
-api.effects;                 // effects and their styles
+api.areas();                          // the areas of the viewed scene, bottom first (api.areas(scene) for another scene)
+api.open(areaId);                     // GM: open the Canvas effect window for an area
+await api.saveArea(area);             // GM: add an area or replace the one with the same id -> the saved area, or null
+await api.deleteArea(areaId);         // GM: remove an area
+api.effects;                          // effects and their styles, by id
+api.presets();                        // this user's saved effects: [{id, name, cfg}]
+await api.exportEffect(cfg, name);    // download cfg as one .canvas-effect.json file -> {file, data, missing}
+await api.importEffect(file);         // read such a file, upload its images to this world -> {name, cfg, uploaded, skipped}
 ```
+
+- `saveArea` and `deleteArea` take the scene as an optional last argument (default: the viewed scene). They do nothing for a player, or for a GM who can't update the scene; `open` shows a warning and returns `null` for them. `open` returns the window.
+- `saveArea` cleans the area up before saving it (unknown effects and styles fall back, at most 8 layers), so it needs only an `id` and its `shapes`. Layers saved this way have no sound unless you set `sound`.
+- `importEffect` takes a `File`, the file's text or the parsed object, and also a bare `{layers: [...]}`. It throws on a file it can't read or one from a newer version of the module. Images are uploaded only when the user may upload files. It doesn't save anything: put `cfg` on an area as its `effect`.
+- `exportEffect` lists in `missing` the images it could not embed (they keep their address).
+- `api.effects[id]` has `label`, `icon`, `params` (the sliders it uses) and `styles` (`{styleId: {label, …}}`); the other fields are internal.
+
+Paint rain over the whole scene, drawn above the tokens:
+
+```js
+const api = game.modules.get("dxcufgbs-canvas-effects").api;
+const r = canvas.dimensions.sceneRect;
+await api.saveArea({
+  id: foundry.utils.randomID(),
+  name: "Rain",
+  shapes: [{ type: "rect", x: r.x, y: r.y, width: r.width, height: r.height }],
+  effect: { layers: [{ effect: "rain", style: "downpour", aboveTokens: true, sound: "rain-steady" }] }
+});
+```
+
+**From another module**
+
+The API is set during `init`, so it is ready from `setup` on. The module calls no hooks of its own; watch `updateScene` for changes to the flag. Make the integration optional:
+
+```js
+Hooks.once("ready", () => {
+  const mod = game.modules.get("dxcufgbs-canvas-effects");
+  if (!mod?.active) return;   // Dxcufgb's canvas effects not installed or not enabled
+  const areas = mod.api.areas();
+});
+```
+
+Add `{ "id": "dxcufgbs-canvas-effects", "type": "module" }` to `relationships.recommends` in your `module.json`.
+
+**Data**
+
+- An area: `{id, name, visible, exclude, ignoreExclusions, feather, elevation, sort, shapes, effect}`. `visible`: players see it; `exclude`: an exclusion zone, which hides the effects of areas with a lower `sort`; `ignoreExclusions`: no exclusion zone hides this area; `feather`: the soft edge in grid squares (0 to 4); `sort`: the drawing order, higher on top.
+- A shape, in scene pixels: `{type: "rect" | "ellipse", x, y, width, height}`, `{type: "polygon", points: [x0, y0, x1, y1, …]}` or `{type: "stroke", points, width}` (a brush stroke or wall). Add `erase: true` to cut the shape out of the area.
+- An effect: `{layers: [...]}`, drawn bottom to top. A layer: `{effect, style, scale, speed, alpha, density, direction, wind, pulse, rainbow, color, blend}`, plus `src` and `fit` (`"tile"` or `"stretch"`) for `"image"`, `light` for the effects that can cast light, `aboveTokens`, and `sound` (a built-in sound id, `"custom"` with `soundSrc`, or `""`), `soundVolume` (0 to 1) and `soundRange` (grid squares).
+- Saved effects are a flag on the User: `flags["dxcufgbs-canvas-effects"].presets`, read them with `api.presets()`.
+- Exported files: `<name>.canvas-effect.json`, `{format: "dxcufgbs-canvas-effects.effect", formatVersion: 1, name, exported, moduleVersion, effect, images}`. `images` holds each image of your own as a data URL, keyed by the `image` field of its layer.
