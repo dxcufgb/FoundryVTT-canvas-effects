@@ -100,7 +100,7 @@ function apiSaveArea(area, scene) {
   if (!Array.isArray(layers)) return saveArea(area, scene);
   const on = standardSoundsOn();
   const withSounds = layers.map(l => {
-    if (!l || typeof l !== "object" || "sound" in l) return l;
+    if (!l || typeof l !== "object" || l.sound !== undefined) return l;
     return { ...l, sound: withStandardSound({ effect: normalizeLayer(l).effect }, on).sound };
   });
   return saveArea({ ...area, effect: { ...area.effect, layers: withSounds } }, scene);
