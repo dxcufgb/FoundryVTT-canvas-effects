@@ -13,8 +13,8 @@
  * API: game.modules.get("dxcufgbs-canvas-effects").api
  *   .areas(scene?)               the areas of a scene
  *   .open(areaId)                open the Canvas Effect window for an area
- *   .saveArea(area) / .deleteArea(id)
- *   .effects                     the available effects and their styles
+ *   .saveArea(area) / .deleteArea(id)   a layer without `sound` gets its standard sound (setting)
+ *   .effects                     the available effects and their styles (a frozen copy: labels, icons, sliders)
  *   .presets()                   this user's saved effects
  *   .exportEffect(cfg, name)     save an effect (with its own images) as one .canvas-effect.json file
  *   .importEffect(file)          read such a file, add its images to this world -> {name, cfg, uploaded, skipped}
@@ -24,8 +24,9 @@ import { MODULE_ID, LAYER } from "./constants.js";
 import { CanvasEffectsLayer } from "./layer.js";
 import { EffectPainter } from "./palette.js";
 import { CanvasEffectConfig } from "./config-app.js";
-import { EFFECTS } from "./effects.js";
+import { EFFECTS, normalizeLayer } from "./effects.js";
 import { sceneAreas, saveArea, deleteArea, presets } from "./store.js";
+import { withStandardSound, standardSoundsOn } from "./sounds.js";
 import { sync, rebuildAll, onSceneUpdate, onTearDown, attachGlows } from "./manager.js";
 import { exportEffect, importEffect } from "./transfer.js";
 
@@ -68,11 +69,42 @@ Hooks.once("init", () => {
     mod.api = {
       areas: scene => sceneAreas(scene),
       open: id => CanvasEffectConfig.open(id),
-      saveArea, deleteArea, presets, exportEffect, importEffect,
-      effects: EFFECTS
+      saveArea: apiSaveArea, deleteArea, presets, exportEffect, importEffect,
+      effects: publicEffects()
     };
   }
 });
+
+/** What other modules see of EFFECTS: labels, icons, sliders and style labels, frozen. */
+function publicEffects() {
+  const out = {};
+  for (const [id, def] of Object.entries(EFFECTS)) {
+    const styles = {};
+    for (const [sid, st] of Object.entries(def.styles ?? {})) styles[sid] = Object.freeze({ label: String(st?.label ?? sid) });
+    out[id] = Object.freeze({
+      label: String(def.label ?? id),
+      icon: String(def.icon ?? ""),
+      params: Object.freeze([...(def.params ?? [])]),
+      styles: Object.freeze(styles)
+    });
+  }
+  return Object.freeze(out);
+}
+
+/**
+ * api.saveArea: like painting a new area by hand, a layer without `sound` gets its effect's
+ * standard sound when the "Standard sounds for new effects" setting is on. `sound: null` = none.
+ */
+function apiSaveArea(area, scene) {
+  const layers = area?.effect?.layers;
+  if (!Array.isArray(layers)) return saveArea(area, scene);
+  const on = standardSoundsOn();
+  const withSounds = layers.map(l => {
+    if (!l || typeof l !== "object" || l.sound !== undefined) return l;
+    return { ...l, sound: withStandardSound({ effect: normalizeLayer(l).effect }, on).sound };
+  });
+  return saveArea({ ...area, effect: { ...area.effect, layers: withSounds } }, scene);
+}
 
 // gmHearing is a per-user setting, so Foundry shows it to everyone. Only the GM needs it.
 Hooks.on("renderSettingsConfig", (app, html) => {
