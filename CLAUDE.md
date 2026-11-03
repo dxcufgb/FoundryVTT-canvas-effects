@@ -27,9 +27,9 @@ dependencies.
 
 ## Conventions
 - `MODULE_ID` must equal `id` in `module.json`; every visible setting needs a Name and Hint in `lang/en.json` (CI checks both). UI strings are under `DXCFX.*`; effect and style labels are plain English in `EFFECTS`.
-- A complete new **effect**: a class extending `AreaEffect` (build in `build()`, move in `animate(dt, time)`, scene pixels, counts scaled by `ctx.squares` and `ctx.quality`); an `EFFECTS` entry with `label`, `icon`, `cls`, `params` (keys of `PARAMS`) and `styles`, plus `emissive`, `lights`, `blend`, `backdrop` / `under` as needed; its id in a `CATEGORIES` group (otherwise the window never shows it); optional sounds in `EFFECT_SOUNDS`; README tables (effects by category, the style count, the sound table). A shader effect adds its GLSL to `GLSL` in `effects-shader.js`.
-- A new **built-in sound**: the file under `sounds/`, an entry in `SOUNDS` with a `DXCFX.Sound.*` label, its use in `EFFECT_SOUNDS`, a row in `sounds/CREDITS.md` (CC0 or public domain only) and the README sound table.
-- Update `README.md` when effects, settings or the API change.
+- A complete new **effect**: a class extending `AreaEffect` (build in `build()`, move in `animate(dt, time)`, scene pixels, counts scaled by `ctx.squares` and `ctx.quality`); an `EFFECTS` entry with `label`, `icon`, `cls`, `params` (keys of `PARAMS`) and `styles`, plus `emissive`, `lights`, `blend`, `backdrop` / `under` as needed; its id in a `CATEGORIES` group (otherwise the window never shows it); optional sounds in `EFFECT_SOUNDS`; the wiki tables (Effects page: effects by category and the style count; Sounds page: the sound table). A shader effect adds its GLSL to `GLSL` in `effects-shader.js`.
+- A new **built-in sound**: the file under `sounds/`, an entry in `SOUNDS` with a `DXCFX.Sound.*` label, its use in `EFFECT_SOUNDS`, a row in `sounds/CREDITS.md` (CC0 or public domain only) and the sound table on the wiki's Sounds page.
+- Update the wiki (not `README.md`, which only has the install steps and links to the wiki) when effects, settings or the API change.
 
 ## Review focus
 - **GM-only editing**: every write goes through `store.js`, which checks `canEdit()` (GM and `scene.canUserModify`); the Scene Controls, Effect Painter and Canvas effect window are GM-only. Players only see areas with `visible` on (and exclusion zones only when they have an effect of their own); the GM sees hidden ones faded. Keep both rules in `syncNow` and `attachGlows`.
