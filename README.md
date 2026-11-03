@@ -47,6 +47,6 @@ The full guide is in the [wiki](https://github.com/dxcufgb/FoundryVTT-canvas-eff
 - [API](https://github.com/dxcufgb/FoundryVTT-canvas-effects/wiki/API): for macro and module authors
 - [Troubleshooting](https://github.com/dxcufgb/FoundryVTT-canvas-effects/wiki/Troubleshooting)
 
-## Development
+## License
 
-New effects are added in `scripts/effects.js` (see the comment at the top of the file).
+[MIT](LICENSE)
