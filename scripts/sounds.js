@@ -18,6 +18,7 @@
  */
 
 import { MODULE_ID } from "./constants.js";
+import { noteError } from "./debug-recorder.js";
 import { areaBounds, areaContains, shapeContains } from "./geometry.js";
 
 /** A sound file of your own. */
@@ -303,7 +304,7 @@ function walled(a, b) {
   try {
     return !!CONFIG.Canvas.polygonBackends.sound.testCollision(a, b, { type: "sound", mode: "any" });
   } catch (err) {
-    if (!wallWarned) { wallWarned = true; console.warn(`${MODULE_ID} | could not test walls for sound`, err); }
+    if (!wallWarned) { wallWarned = true; console.warn(`${MODULE_ID} | could not test walls for sound`, err); noteError("soundWalls"); }
     return false;
   }
 }
@@ -389,6 +390,24 @@ export function syncSounds(list) {
   tickSounds();
 }
 
+/**
+ * For the debug snapshot: counts only (loops are keyed by file path, which is never handed out).
+ * Built-in vs own files are told apart by comparing with SOUNDS.
+ */
+export function soundStats() {
+  const builtIn = new Set(Object.values(SOUNDS).map(s => s.src).filter(Boolean));
+  let custom = 0, muffled = 0, audible = 0;
+  for (const [src, l] of loops) {
+    if (!builtIn.has(src)) custom++;
+    if (l.muffled) muffled++;
+    if (l.target > 0.01) audible++;
+  }
+  return {
+    soundLoops: loops.size, soundLoopsCustom: custom, soundLoopsMuffled: muffled, soundLoopsAudible: audible,
+    soundSources: sources.length, hearingFrom: listeners() ? "tokens" : "camera"
+  };
+}
+
 export function stopSounds() {
   sources = [];
   for (const [src, l] of loops) stop(src, l);
@@ -400,6 +419,7 @@ async function start(src) {
     return await game.audio.play(src, { context: game.audio.environment, loop: true, volume: 0 });
   } catch (err) {
     console.warn(`${MODULE_ID} | could not play ${src}`, err);
+    noteError("soundLoop");
     return null;
   }
 }
@@ -489,6 +509,7 @@ export function playOnce(src, delay = 0, volume = 1, where = null) {
       await sound.play({ volume, loop: false });
     } catch (err) {
       console.warn(`${MODULE_ID} | could not play ${src}`, err);
+      noteError("soundOnce");
     }
   }, delay);
 }

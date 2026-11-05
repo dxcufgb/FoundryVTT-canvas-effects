@@ -17,6 +17,7 @@ import { setOverride, effectImages, showLocal, shownAreas, editableArea, sceneBa
 import { AreaMesh } from "./area-mesh.js";
 import { areaBounds } from "./geometry.js";
 import { exportEffect, importEffect } from "./transfer.js";
+import { crumb, noteError } from "./debug-recorder.js";
 import { SOUNDS, CUSTOM, RANGE, soundOptions, isStrikeSound, withStandardSound, standardSoundsOn } from "./sounds.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
@@ -75,11 +76,14 @@ export class CanvasEffectConfig extends HandlebarsApplicationMixin(ApplicationV2
   /** Open the window for an area of the viewed scene. */
   static open(areaId) {
     if (!canEdit()) {
+      crumb("app.open", { denied: true });
       ui.notifications.warn(game.i18n.localize("DXCFX.App.NotAllowed"));
       return null;
     }
     // Just painted: the scene update may not be back yet, so take the area as shown.
-    const area = getArea(areaId) ?? shownAreas().find(a => a.id === areaId);
+    const saved = getArea(areaId);
+    const area = saved ?? shownAreas().find(a => a.id === areaId);
+    crumb("app.open", { docId: areaId ?? null, found: !!area, unsaved: !saved && !!area, reused: !!this.instance });
     if (!area) return null;
     if (this.instance) this.instance.setArea(area);
     else this.instance = new this(area);
@@ -516,6 +520,7 @@ export class CanvasEffectConfig extends HandlebarsApplicationMixin(ApplicationV2
     this._importing = true;
     try {
       const result = await importEffect(file);
+      crumb("transfer.import", { layers: result.cfg.layers.length, uploaded: result.uploaded, skipped: result.skipped.length });
       if (!result.cfg.layers.length) throw new Error(game.i18n.localize("DXCFX.Transfer.Empty"));
       this.#setConfig(result.cfg);
       const name = CanvasEffectConfig.#freeName(result.name);
@@ -528,6 +533,8 @@ export class CanvasEffectConfig extends HandlebarsApplicationMixin(ApplicationV2
       this.#changed(true);
     } catch (err) {
       console.error(`${MODULE_ID} | import failed`, err);
+      noteError("import");
+      crumb("transfer.importFailed", {});
       ui.notifications.error(game.i18n.format("DXCFX.Transfer.ImportFailed", { error: err.message }));
     } finally {
       this._importing = false;
@@ -673,10 +680,13 @@ export class CanvasEffectConfig extends HandlebarsApplicationMixin(ApplicationV2
     } catch (_) { return; }
     if (name === null || name === undefined) return;
     try {
-      const { file } = await exportEffect(this.cfg, name);
+      const { file, missing } = await exportEffect(this.cfg, name);
+      crumb("transfer.export", { layers: this.cfg.layers.length, notEmbedded: missing.length });
       ui.notifications.info(game.i18n.format("DXCFX.Transfer.Exported", { file }));
     } catch (err) {
       console.error(`${MODULE_ID} | export failed`, err);
+      noteError("export");
+      crumb("transfer.exportFailed", {});
       ui.notifications.error(game.i18n.localize("DXCFX.Transfer.ExportFailed"));
     }
   }
@@ -687,6 +697,7 @@ export class CanvasEffectConfig extends HandlebarsApplicationMixin(ApplicationV2
 
   static async #onApply() {
     const area = this.#edited();
+    crumb("app.apply", { docId: area.id, layers: area.effect.layers.length, exclude: area.exclude });
     if (area.effect.layers.some(l => l.effect === IMAGE && !l.src)) {
       return ui.notifications.warn(game.i18n.localize("DXCFX.App.NoImage"));
     }
@@ -702,6 +713,7 @@ export class CanvasEffectConfig extends HandlebarsApplicationMixin(ApplicationV2
 
   /** Throw the changes away and show the area as it is saved. */
   static async #onRevert() {
+    crumb("app.revert", { docId: this.areaId });
     const area = editableArea(this.areaId) ?? this.saved;
     const sel = this.sel;
     this.#load(area);
@@ -712,6 +724,7 @@ export class CanvasEffectConfig extends HandlebarsApplicationMixin(ApplicationV2
 
   /** Remove the effect from the area (the painted area stays, empty). */
   static async #onClearEffect() {
+    crumb("app.clearEffect", { docId: this.areaId });
     const area = { ...this.#edited(), effect: { layers: [] } };
     showLocal(area.id, area);
     await saveArea(area);

@@ -20,6 +20,7 @@ import { MODULE_ID, LAYER } from "./constants.js";
 import { drawShape, translateShapes, normalizeShape, shapeBounds, boxesTouch, areaContains, thinPoints, Graphics } from "./geometry.js";
 import { sceneAreas, getArea, saveArea, deleteArea, deleteAllAreas, newArea, canEdit } from "./store.js";
 import { meshFor, showLocal, shownAreas, editableAreas, editableArea } from "./manager.js";
+import { crumb } from "./debug-recorder.js";
 
 export const TOOLS = {
   pick: "dxcfxPick",
@@ -307,13 +308,17 @@ export class CanvasEffectsLayer extends foundry.canvas.layers.InteractionLayer {
   async #commit(shape) {
     shape = normalizeShape(shape);
     if (!shape || !canEdit()) return;
+    crumb("paint.commit", { tool: this.tool, shape: shape.type, erase: !!shape.erase, toCurrent: !!this.currentId });
 
     if (shape.erase) {
       const box = shapeBounds(shape);
       const targets = this.currentId
         ? [editableArea(this.currentId)].filter(Boolean)
         : editableAreas().filter(a => boxesTouch(meshFor(a.id)?.rawBounds, box));
-      if (!targets.length) return ui.notifications.info(game.i18n.localize("DXCFX.Notify.NothingToErase"));
+      if (!targets.length) {
+        crumb("paint.eraseNothing", {});
+        return ui.notifications.info(game.i18n.localize("DXCFX.Notify.NothingToErase"));
+      }
       for (const area of targets) {
         this.#remember(area.id);
         await this.#save({ ...area, shapes: [...area.shapes, shape] });
@@ -336,6 +341,7 @@ export class CanvasEffectsLayer extends foundry.canvas.layers.InteractionLayer {
 
   async undo() {
     const step = this.#undo.pop();
+    crumb("paint.undo", { had: !!step, restored: !!step?.before, left: this.#undo.length });
     if (!step) return false;
     if (step.before) await this.#save(step.before);
     else {
@@ -484,6 +490,7 @@ export class CanvasEffectsLayer extends foundry.canvas.layers.InteractionLayer {
       return;
     }
     const shapes = translateShapes(area.shapes, dx, dy);
+    crumb("area.move", { docId: id, copy: !!copy });
     if (copy) {
       this.#offsetArea(id, 0, 0);
       const twin = newArea(shapes);

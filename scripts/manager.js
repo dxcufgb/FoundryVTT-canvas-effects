@@ -11,7 +11,9 @@ import { AreaMesh } from "./area-mesh.js";
 import { customSources } from "./effects.js";
 import { sceneAreas, getArea } from "./store.js";
 import { syncLights, tickLights, clearLights } from "./lights.js";
-import { syncSounds, tickSounds, stopSounds, playOnce } from "./sounds.js";
+import { syncSounds, tickSounds, stopSounds, playOnce, soundStats } from "./sounds.js";
+import { lightStats } from "./lights.js";
+import { crumb, noteError, errorCounts } from "./debug-recorder.js";
 
 const state = {
   meshes: new Map(),        // area id -> AreaMesh
@@ -37,6 +39,8 @@ export async function effectImages(cfg) {
     if (!state.images.has(src)) {
       state.images.set(src, foundry.canvas.loadTexture(src).catch(err => {
         console.warn(`${MODULE_ID} | image ${src} could not be loaded`, err);
+        noteError("image");
+        crumb("image.loadFailed", {});         // fallback: the layer is drawn without its image
         state.images.delete(src);
         return null;
       }));
@@ -107,14 +111,20 @@ export function showLocal(id, area) {
 
 /** Show an unsaved version of an area (effect, soft edge, ...) while it is being edited; null to stop. */
 export function setOverride(id, partial) {
+  const had = state.overrides.has(id);
   if (partial) state.overrides.set(id, partial);
   else state.overrides.delete(id);
+  if (had !== !!partial) crumb(partial ? "override.set" : "override.clear", { docId: id });
   return sync();
 }
 
 /** Bring the canvas up to date with the scene. Calls are queued, so they never overlap. */
 export function sync() {
-  state.syncing = state.syncing.then(syncNow).catch(err => console.error(`${MODULE_ID} | sync failed`, err));
+  state.syncing = state.syncing.then(syncNow).catch(err => {
+    console.error(`${MODULE_ID} | sync failed`, err);
+    noteError("sync");
+    crumb("sync.failed", {});
+  });
   return state.syncing;
 }
 
@@ -126,11 +136,13 @@ async function syncNow() {
   // Players only need an exclusion zone when it has an effect of its own.
   const areas = all.filter(a => (game.user.isGM || a.visible) && (game.user.isGM || !a.exclude || a.effect.layers.length));
   const keep = new Set(areas.map(a => a.id));
+  let removed = 0, created = 0;
 
   for (const [id, mesh] of state.meshes) {
     if (!keep.has(id) || mesh.destroyed) {
       if (!mesh.destroyed) mesh.destroy();
       state.meshes.delete(id);
+      removed++;
     }
   }
   // The overlay may still show the textures of destroyed meshes: redraw it before waiting on images.
@@ -160,6 +172,7 @@ async function syncNow() {
       mesh = new AreaMesh(shown, { renderer: canvas.app.renderer, grid, quality: q, textures, maxMask: q < 1 ? 1024 : 2048, playSound: effectSound, backdrop: sceneBackdrop(), exclusions: cuts });
       state.meshes.set(area.id, mesh);
       canvas.primary.addChild(mesh);
+      created++;
     }
     mesh.showEffects = enabled();
     mesh.alpha = area.visible ? 1 : 0.5;          // hidden from players: the GM sees it faded
@@ -173,6 +186,8 @@ async function syncNow() {
   syncSounds(enabled() ? areas.filter(a => a.shapes.length).map(area => ({ area, faded: !area.visible, cuts: soundCuts(area) })) : []);
   attachGlows();
   startTicker();
+  // Only when meshes came or went: a sync also runs on every slider change in the effect window.
+  if (created || removed) crumb("sync.meshes", { areas: areas.length, created, removed, effectsOn: enabled() });
 }
 
 /**
@@ -200,6 +215,7 @@ export function clearAll() {
 }
 
 export function rebuildAll() {
+  crumb("sync.rebuildAll", { meshes: state.meshes.size });
   clearAll();
   canvas[LAYER]?.refreshOverlay?.();
   return sync();
@@ -217,12 +233,65 @@ export function onSceneUpdate() {
 }
 
 export function onTearDown() {
+  crumb("canvas.tearDown", { meshes: state.meshes.size });
   for (const mesh of state.meshes.values()) if (!mesh.destroyed) mesh.destroy();
   state.meshes.clear();
   clearLights();
   stopSounds();
   state.local.clear();
   state.overrides.clear();
+}
+
+/* -------------------------------------------- */
+/*  Debug Recorder snapshot                     */
+/* -------------------------------------------- */
+
+/**
+ * What the Debug Recorder gets from this module (optional, see debug-recorder.js): counts, booleans and
+ * our own effect ids only, never area names, image or sound paths. The recorder records settings itself.
+ */
+export function debugSnapshot() {
+  const saved = canvas?.ready ? sceneAreas() : [];
+  const live = meshes();
+  const layersByEffect = {}, displayObjectsByEffect = {};
+  let layers = 0, displayObjects = 0, emissiveAreas = 0, aboveTokensLayers = 0, underLayers = 0;
+  for (const mesh of live) {
+    if (mesh.emissive) emissiveAreas++;
+    aboveTokensLayers += mesh.overContent?.children.length ?? 0;
+    underLayers += mesh.underContent?.children.length ?? 0;
+    for (const { effect, displayObjects: n } of mesh.layerStats) {
+      layers++;
+      displayObjects += n;
+      layersByEffect[effect] = (layersByEffect[effect] ?? 0) + 1;
+      displayObjectsByEffect[effect] = (displayObjectsByEffect[effect] ?? 0) + n;
+    }
+  }
+  return {
+    canvasReady: !!canvas?.ready,
+    effectsEnabled: enabled(),
+    tickerRunning: state.ticking,
+    isGM: !!game.user?.isGM,
+    savedAreas: saved.length,
+    savedExclusionZones: saved.filter(a => a.exclude).length,
+    savedHiddenAreas: saved.filter(a => !a.visible).length,
+    savedEmptyAreas: saved.filter(a => !a.exclude && !a.effect.layers.length).length,
+    meshes: live.length,
+    meshesHidden: live.filter(m => !m.visible || !m.content.renderable).length,
+    meshesEmissive: emissiveAreas,
+    glowsAttached: live.filter(m => m.glowProxy?.parent).length,
+    layers,
+    layersByEffect,
+    aboveTokensLayers,
+    underLayers,
+    displayObjects,
+    displayObjectsByEffect,
+    overrides: state.overrides.size,
+    pendingLocal: state.local.size,
+    imagesCached: state.images.size,
+    ...lightStats(),
+    ...soundStats(),
+    errors: errorCounts()
+  };
 }
 
 /* -------------------------------------------- */

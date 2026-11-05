@@ -27,8 +27,9 @@ import { CanvasEffectConfig } from "./config-app.js";
 import { EFFECTS, normalizeLayer } from "./effects.js";
 import { sceneAreas, saveArea, deleteArea, presets } from "./store.js";
 import { withStandardSound, standardSoundsOn } from "./sounds.js";
-import { sync, rebuildAll, onSceneUpdate, onTearDown, attachGlows } from "./manager.js";
+import { sync, rebuildAll, onSceneUpdate, onTearDown, attachGlows, debugSnapshot } from "./manager.js";
 import { exportEffect, importEffect } from "./transfer.js";
+import { registerDebugRecorder, crumb } from "./debug-recorder.js";
 
 Hooks.once("init", () => {
   game.settings.register(MODULE_ID, "enabled", {
@@ -73,6 +74,7 @@ Hooks.once("init", () => {
       effects: publicEffects()
     };
   }
+  registerDebugRecorder(debugSnapshot);
 });
 
 /** What other modules see of EFFECTS: labels, icons, sliders and style labels, frozen. */
@@ -123,6 +125,7 @@ Hooks.on("canvasTearDown", () => {
 Hooks.on("updateScene", (scene, changes) => {
   if (scene !== canvas?.scene) return;
   if (!foundry.utils.hasProperty(changes, `flags.${MODULE_ID}`)) return;
+  crumb("scene.areasUpdated", { docId: scene.id });
   onSceneUpdate().then(() => {
     EffectPainter.refresh();
     CanvasEffectConfig.instance?.onAreasChanged();

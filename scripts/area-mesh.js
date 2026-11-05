@@ -21,6 +21,7 @@ import { SORT_LAYER, OVER_SORT_LAYER } from "./constants.js";
 const UNDER_SORT_LAYER = 450;
 import { areaBounds, areaContains, buildMaskGraphics } from "./geometry.js";
 import { normalizeEffect, createEffect, structuralKey } from "./effects.js";
+import { crumb, noteError } from "./debug-recorder.js";
 
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 
@@ -264,6 +265,8 @@ export class AreaMesh extends PIXI.Container {
         this.effects.push(e);
       } catch (err) {
         console.error("dxcufgbs-canvas-effects | could not build an effect layer", layer, err);
+        noteError("buildLayer");
+        crumb("effect.buildFailed", { effect: layer?.effect ?? null });
       }
     }
   }
@@ -276,7 +279,7 @@ export class AreaMesh extends PIXI.Container {
     this.effects.forEach((e, i) => {
       if (!e.layer.light) return;
       let list = [];
-      try { list = e.lights() ?? []; } catch (err) { console.error("dxcufgbs-canvas-effects | lights", err); }
+      try { list = e.lights() ?? []; } catch (err) { console.error("dxcufgbs-canvas-effects | lights", err); noteError("layerLights"); }
       list.forEach((l, j) => out.push({ key: `${i}.${j}`, ...l }));
     });
     return out;
@@ -285,6 +288,19 @@ export class AreaMesh extends PIXI.Container {
   /** Does any layer glow by itself? */
   get emissive() {
     return this.effects.some(e => e.emissive);
+  }
+
+  /**
+   * For the debug snapshot: [{effect, displayObjects}] per built layer. displayObjects counts the
+   * sprites / graphics under the layer (its particles). Not for per-frame use.
+   */
+  get layerStats() {
+    const count = obj => {
+      let n = 0;
+      for (const c of obj.children ?? []) n += 1 + count(c);
+      return n;
+    };
+    return this.effects.filter(e => !e.destroyed).map(e => ({ effect: e.layer?.effect ?? "unknown", displayObjects: count(e) }));
   }
 
   /** Show or hide the effects (the mask stays, for the painting overlay). */
