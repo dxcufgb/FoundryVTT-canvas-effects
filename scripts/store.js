@@ -11,6 +11,7 @@
 import { MODULE_ID, FLAG } from "./constants.js";
 import { normalizeShapes } from "./geometry.js";
 import { normalizeEffect, defaultEffect } from "./effects.js";
+import { crumb } from "./debug-recorder.js";
 
 const num = (v, d) => (Number.isFinite(Number(v)) ? Number(v) : d);
 
@@ -48,9 +49,16 @@ export function canEdit(scene = canvas?.scene) {
 }
 
 export async function saveArea(area, scene = canvas?.scene) {
-  if (!canEdit(scene)) return null;
+  if (!canEdit(scene)) {
+    crumb("area.save", { denied: true });
+    return null;
+  }
   const data = normalizeArea(area);
   if (!data) return null;
+  crumb("area.save", {
+    docId: data.id, shapes: data.shapes.length, layers: data.effect.layers.length,
+    effects: data.effect.layers.map(l => l.effect).join(","), exclude: data.exclude, visible: data.visible
+  });
   await scene.update({ [`flags.${MODULE_ID}.${FLAG}.${data.id}`]: data });
   return data;
 }
@@ -68,11 +76,13 @@ export async function saveAreas(list, scene = canvas?.scene) {
 
 export async function deleteArea(id, scene = canvas?.scene) {
   if (!canEdit(scene)) return;
+  crumb("area.delete", { docId: id });
   await scene.update({ [`flags.${MODULE_ID}.${FLAG}.-=${id}`]: null });
 }
 
 export async function deleteAllAreas(scene = canvas?.scene) {
   if (!canEdit(scene)) return;
+  crumb("area.deleteAll", { areas: sceneAreas(scene).length });
   await scene.unsetFlag(MODULE_ID, FLAG);
 }
 

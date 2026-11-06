@@ -9,6 +9,7 @@
  */
 
 import { MODULE_ID } from "./constants.js";
+import { noteError } from "./debug-recorder.js";
 
 const sources = new Map();     // sourceId -> {source, json, dynamic, base, level}
 
@@ -57,6 +58,7 @@ export function syncLights(shown) {
         changed = true;
       } catch (err) {
         console.error(`${MODULE_ID} | could not add a light`, err);
+        noteError("light");
         sources.delete(id);
       }
     }
@@ -84,6 +86,13 @@ export function tickLights() {
     changed = true;
   }
   if (changed) canvas.perception.update({ refreshLighting: true });
+}
+
+/** For the debug snapshot: how many light sources this module keeps, and how many follow a flash. */
+export function lightStats() {
+  let dynamic = 0;
+  for (const entry of sources.values()) if (entry.dynamic) dynamic++;
+  return { lightSources: sources.size, dynamicLights: dynamic };
 }
 
 /** The canvas goes away: Foundry clears its light collection itself. */
