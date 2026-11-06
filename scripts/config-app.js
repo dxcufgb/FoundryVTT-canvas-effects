@@ -520,11 +520,11 @@ export class CanvasEffectConfig extends HandlebarsApplicationMixin(ApplicationV2
     this._importing = true;
     try {
       const result = await importEffect(file);
-      crumb("transfer.import", { layers: result.cfg.layers.length, uploaded: result.uploaded, skipped: result.skipped.length });
       if (!result.cfg.layers.length) throw new Error(game.i18n.localize("DXCFX.Transfer.Empty"));
       this.#setConfig(result.cfg);
       const name = CanvasEffectConfig.#freeName(result.name);
       this.presetId = await savePreset(name, result.cfg);
+      crumb("transfer.import", { layers: result.cfg.layers.length, uploaded: result.uploaded, skipped: result.skipped.length });
       ui.notifications.info(game.i18n.format("DXCFX.Transfer.Imported", { name, n: result.uploaded }));
       if (result.skipped.length) {
         ui.notifications.warn(game.i18n.format(game.user.can("FILES_UPLOAD") ? "DXCFX.Transfer.ImageFailed" : "DXCFX.Transfer.NoUploadImport",
